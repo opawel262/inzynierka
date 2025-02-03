@@ -4,20 +4,14 @@
 
 - [x] Initialize Git repository
 - [x] Set up project structure
-- [ ] Configure linter and formatter
-- [ ] Set up CI/CD pipeline
+- [x] Configure linter and formatter
 
 ## Features
 
 - [ ] User authentication
 - [ ] User profile management
-- [ ] Real-time notifications
-- [ ] Search functionality
 
 ## Bug Fixes
-
-- [ ] Fix login issue on mobile devices
-- [ ] Resolve performance bottleneck in data processing
 
 ## Documentation
 
