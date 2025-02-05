@@ -3,6 +3,7 @@ from time import sleep
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine.base import Engine
 
 connection_engine = None
 
@@ -17,6 +18,6 @@ while connection_engine is None:
         print(f"Retrying in 3s...")
         sleep(3)
 
-engine = connection_engine
+engine: Engine = connection_engine
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

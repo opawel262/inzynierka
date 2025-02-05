@@ -10,8 +10,11 @@
 
 - [ ] User authentication
 - [ ] User profile management
+- [ ] Email system
 
-## Bug Fixes
+## Bug and issue Fixes
+
+- [ ] fix issue with loading version of module bcrypt
 
 ## Documentation
 

@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.post("/token-cookie", response_model=Token, status_code=status.HTTP_201_CREATED)
+@router.post("/token", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def authenticate_user(
     response: Response, data: CreateToken, db: Session = Depends(get_db)
 ) -> Token:
@@ -38,36 +38,7 @@ async def authenticate_user(
 
 
 @router.post(
-    "/token-openai-cookie", response_model=Token, status_code=status.HTTP_201_CREATED
-)
-async def authenticate_user_form(
-    response: Response,
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db),
-) -> Token:
-    if form_data:
-        data = CreateToken(email=form_data.username, password=form_data.password)
-
-    tokens = await get_tokens(data=data, db=db)
-
-    response.set_cookie(
-        key="access_token",
-        value=tokens.get("access_token"),
-        httponly=True,
-        max_age=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES.total_seconds()),
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=tokens.get("refresh_token"),
-        httponly=True,
-        max_age=int(settings.REFRESH_TOKEN_EXPIRE_DAYS.total_seconds()),
-    )
-
-    return Token(**tokens)
-
-
-@router.post(
-    "/refresh-token-cookie",
+    "/refresh-token",
     response_model=AccessToken,
     status_code=status.HTTP_201_CREATED,
 )

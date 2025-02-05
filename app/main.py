@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from fastapi import staticfiles
 
+from app.core.database import engine
 from app.api.main import router as router_api
+from app.domain.model_base import Base
+from app.admin import create_admin
 
 
 def create_db() -> None:
@@ -31,6 +34,7 @@ def get_configured_server_app() -> FastAPI:
     )
 
     create_db()
+    create_admin(app=app, engine=engine)
 
     return app
 
