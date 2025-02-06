@@ -15,22 +15,30 @@ class Settings(BaseSettings):
 
     ALGORITHM: str = "HS256"
 
-    ACCESS_TOKEN_EXPIRE_MINUTES: timedelta = timedelta(minutes=30)
-    REFRESH_TOKEN_EXPIRE_DAYS: timedelta = timedelta(days=10)
+
 
     # FROM ENV
     SQLALCHEMY_DATABASE_URL: str
     SECRET_KEY: str
     EMAIL_EMAIL: EmailStr
     EMAIL_PASSWORD: str
-
+    
+    # AUTH TOKENS EXPIRE TIME 
+    ACCESS_TOKEN_EXPIRE_MINUTES: timedelta = timedelta(minutes=30)
+    REFRESH_TOKEN_EXPIRE_DAYS: timedelta = timedelta(days=10)
+    
+    # CONFIRMATION ACCOUNT TOKEN EXPIRE TIME
+    CONFIRMATION_ACCOUNT_TOKEN_EXPIRE_DAYS: timedelta = timedelta(days=7)
+    
+    # PASSWORD RESET TOKEN EXPIRE TIME
+    PASSWORD_RESET_TOKEN_EXPIRE_TIME_MINUTES: timedelta = timedelta(minutes=15) 
 
 settings = Settings()
 
 
 # EMAIL CONFIGURATION
 
-conf = ConnectionConfig(
+email_conf = ConnectionConfig(
     MAIL_USERNAME=settings.EMAIL_EMAIL,
     MAIL_PASSWORD=settings.EMAIL_PASSWORD,
     MAIL_FROM=settings.EMAIL_EMAIL,

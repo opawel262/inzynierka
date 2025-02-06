@@ -10,11 +10,12 @@
 
 - [ ] User authentication
 - [ ] User profile management
-- [ ] Email system
+- [ X] Email system
 
 ## Bug and issue Fixes
 
 - [ ] fix issue with loading version of module bcrypt
+- [ ] fix issue (not updating new password) with reset password via Email
 
 ## Documentation
 
