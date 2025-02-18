@@ -77,7 +77,7 @@ async def create_user(
     )
     email = EmailSchema(
         email=[user.email],
-        body={"link": token.value},
+        body={"token": token.value},
         subject="Aktywuj konto",
         template_name="email_confirmation",
     )
@@ -158,7 +158,7 @@ async def reset_user_password(
             detail="Nieprawidłowy token sesji.",
         )
 
-    if token.expiration_time < datetime.utcnow():
+    if token.expiration_time < datetimedatetime.now(datetime.UTC):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Sesja wygasła.",
@@ -191,7 +191,7 @@ async def reset_user_password(
             detail="Hasło musi zawierać co najmniej jeden znak specjalny.",
         )
 
-    user.hashed_password = get_password_hash(body.new_password)
+    user.password = get_password_hash(body.new_password)
     db.add(user)
     db.commit()
 

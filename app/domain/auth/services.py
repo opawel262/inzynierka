@@ -9,7 +9,7 @@ from typing import Union, Literal
 import jwt
 
 
-async def get_tokens(data: schemas.Token, db: Session) -> dict:
+async def get_tokens(data: schemas.CreateToken, db: Session) -> dict:
     user = authenticate_user(db=db, email=data.email, password=data.password)
 
     if not user:

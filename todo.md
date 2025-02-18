@@ -6,19 +6,25 @@
 - [x] Set up project structure
 - [x] Configure linter and formatter
 
-## Features
+## TODO
 
-- [ ] User authentication
+- [x] User authentication
+- [x] Email system - (confirm user via email, reset password via mail)
+- [ ] Configure testing environment for app
 - [ ] User profile management
-- [ X] Email system
+- [ ] budget management
+- [ ] invest maangement
+- [ ] Integrate stock prices API
+- [ ] Integrate cryptocurrency prices API
+- [ ] Add redis (for handling websockets/http for crypto/stocks prices)
+- [ ] Implement WebSockets for real-time monitoring of cryptocurrency and stock prices
+- [ ]
 
 ## Bug and issue Fixes
 
+- [x] fix issue (not updating new password) with reset password via Email
 - [ ] fix issue with loading version of module bcrypt
-- [ ] fix issue (not updating new password) with reset password via Email
 
 ## Documentation
 
-- [ ] Write API documentation
-- [ ] Create user manual
 - [ ] Update README file

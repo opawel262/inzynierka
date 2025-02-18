@@ -35,8 +35,7 @@ def authenticate_user(db: Session, email: str, password: str) -> Union[User, Fal
 
 def create_token(
     token_type: Literal["access", "refresh"],
-    data: dict = None,
-    expires_delta: timedelta | None = timedelta(days=7),
+    data: dict = None
 ) -> str:
     """Create jwt token"""
     to_encode = data.copy()
