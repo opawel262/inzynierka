@@ -22,6 +22,10 @@ def get_user_by_email(email: str, db: Session) -> models.User:
     return db.query(models.User).filter(models.User.email == email).first()
 
 
+def get_user_by_username(username: str, db: Session) -> models.User:
+    return db.query(models.User).filter(models.User.username == username).first()
+
+
 def get_user_by_id(id: str, db: Session) -> models.User:
     return db.query(models.User).filter(models.User.id == id).first()
 

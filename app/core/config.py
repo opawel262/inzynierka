@@ -3,6 +3,7 @@ from datetime import timedelta
 from pydantic import EmailStr, validator
 from fastapi_mail import ConnectionConfig
 
+
 # General settings
 class Settings(BaseSettings):
     # Use ConfigDict directly without using model_config
@@ -34,6 +35,11 @@ class Settings(BaseSettings):
 
     # PASSWORD RESET TOKEN EXPIRE TIME
     PASSWORD_RESET_TOKEN_EXPIRE_TIME_MINUTES: timedelta = timedelta(minutes=15)
+
+    # static media
+    MEDIA_IMAGE_URL: str = "/media"
+    MEDIA_IMAGE_DIR: str = "/code/app/media"
+
 
 settings = Settings()
 

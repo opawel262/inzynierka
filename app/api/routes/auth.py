@@ -5,7 +5,7 @@ from app.domain.auth.services import get_tokens, get_access_token_by_refresh_tok
 from app.domain.auth.schemas import Token
 from app.core.config import settings
 from app.api.deps import get_db
-from typing import Union, Optional, Annotated
+from typing import Union, Optional, Annotated, Dict
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 
@@ -15,26 +15,26 @@ router = APIRouter(
 )
 
 
-@router.post("/token", response_model=Token, status_code=status.HTTP_201_CREATED)
+@router.post("/token", status_code=status.HTTP_201_CREATED)
 async def authenticate_user(
     response: Response, data: CreateToken, db: Session = Depends(get_db)
-) -> Token:
-    tokens = await get_tokens(data=data, db=db)
+) -> Dict:
+    tokens = get_tokens(data=data, db=db)
 
     response.set_cookie(
         key="access_token",
-        value=tokens.get("access_token"),
+        value=tokens.access_token,
         httponly=True,
         max_age=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES.total_seconds()),
     )
     response.set_cookie(
         key="refresh_token",
-        value=tokens.get("refresh_token"),
+        value=tokens.refresh_token,
         httponly=True,
         max_age=int(settings.REFRESH_TOKEN_EXPIRE_DAYS.total_seconds()),
     )
 
-    return Token(**tokens)
+    return {"detail": "Uwierzytelnienie zakończone pomyślnie"}
 
 
 @router.post(
@@ -54,4 +54,4 @@ async def refresh_token(
         max_age=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES.total_seconds()),
     )
 
-    return {"access_token": access_token}
+    return {"detail": "Token odświeżony pomyślnie"}

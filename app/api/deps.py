@@ -22,9 +22,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
         super().__init__(flows=flows, scheme_name=scheme_name, auto_error=auto_error)
 
     async def __call__(self, request: Request) -> Optional[str]:
-        access_token: str = str(
-            request.cookies.get("access_token")
-        )
+        access_token: str = str(request.cookies.get("access_token"))
 
         return access_token
 

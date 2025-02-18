@@ -1,6 +1,7 @@
 import secrets
 import string
 from fastapi_mail import MessageSchema, MessageType, FastMail
+from fastapi import UploadFile
 from app.core.schemas import EmailSchema
 from app.core.config import email_conf
 import re
@@ -52,3 +53,9 @@ def validate_email(email: str) -> bool:
         return True
 
     return False
+
+
+def check_file_if_image(file: UploadFile) -> bool:
+    if file.filename.lower().split(".")[-1] not in ["img", "png", "jpg", "jpeg"]:
+        return False
+    return True

@@ -1,17 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    BackgroundTasks,
+    status,
+    UploadFile,
+    File,
+    Form,
+)
 
 from sqlalchemy.orm import Session
 
 from app.domain.user import schemas, services, models
 from app.api.deps import get_db, authenticate
 from app.core.schemas import EmailSchema, ReponseDetailSchema
-from app.core.utils import send_mail, validate_email, generate_token
+from app.core.utils import (
+    send_mail,
+    validate_email,
+    generate_token,
+    check_file_if_image,
+)
 from app.core.responses.user import register_response
 from app.core.config import settings
 from app.core.security import get_password_hash
 from datetime import timedelta, datetime
 from typing import Union, Annotated
 import re
+import json
+from uuid import uuid4
+import os
 
 router = APIRouter(
     prefix="/users",
@@ -38,6 +55,12 @@ async def create_user(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ten adres email jest już zarejestrowany.",
+        )
+
+    if services.get_user_by_username(username=user.username, db=db):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nazwa użytkownika jest już zajęta.",
         )
 
     # Password validation
@@ -77,7 +100,7 @@ async def create_user(
     )
     email = EmailSchema(
         email=[user.email],
-        body={"token": token.value},
+        body={"link": f"{settings.FRONTED_URL}/confirm-user?token={token.value}"},
         subject="Aktywuj konto",
         template_name="email_confirmation",
     )
@@ -100,6 +123,12 @@ async def confirm_user_account(token: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Użytkownik nie istnieje.",
         )
+    if user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Konto jest już aktywne.",
+        )
+
     user.is_active = True
     db.commit()
     return {"detail": "Konto zostało pomyślnie aktywowane."}
@@ -129,7 +158,7 @@ async def send_reset_password_email(
 
         email = EmailSchema(
             email=[user.email],
-            body={"link": token.value},
+            body={"link": f"{settings.FRONTED_URL}/reset-password?token={token.value}"},
             subject="Resetowanie hasła",
             template_name="password_reset",
         )
@@ -158,7 +187,7 @@ async def reset_user_password(
             detail="Nieprawidłowy token sesji.",
         )
 
-    if token.expiration_time < datetimedatetime.now(datetime.UTC):
+    if token.expiration_time < datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Sesja wygasła.",
@@ -206,3 +235,64 @@ async def get_user_by_access_token(
     db: Session = Depends(get_db),
 ) -> schemas.UserRetrieve:
     return services.get_user_by_id(id=user_id, db=db)
+
+
+@router.patch("/me")
+async def update_partial_user(
+    user_id: Annotated[int, Depends(authenticate)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[Union[schemas.UserUpdate, str], Form(...)] = None,
+    avatar_image: Union[Annotated[UploadFile, File(...)]] = None,
+) -> schemas.UserRetrieve:
+
+    try:
+        if (user or avatar_image) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Brak danych do aktualizacji.",
+            )
+        db_user = services.get_user_by_id(id=user_id, db=db)
+
+        if user:
+            user = json.loads(user)
+            user_update = schemas.UserUpdate(**user)
+
+        if avatar_image:
+            if not check_file_if_image(avatar_image):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Przesłany plik nie jest obrazem.",
+                )
+            avatar_image.filename = f"{uuid4()}.{avatar_image.filename.split('.')[-1]}"
+            print("hel")
+            image_content = await avatar_image.read()
+            print(avatar_image.filename)
+            current_directory = os.getcwd()
+            app_directory = os.path.join(current_directory, "app")
+            print(f"App directory: {app_directory}")
+            print("Files in the app directory:")
+            for root, dirs, files in os.walk(app_directory):
+                for file_name in files:
+                    print(os.path.join(root, file_name))
+            print(f"{settings.MEDIA_IMAGE_DIR}/uploads/user/{avatar_image.filename}")
+            with open(
+                f"{settings.MEDIA_IMAGE_DIR}/uploads/user/{avatar_image.filename}", "wb"
+            ) as f:
+                f.write(image_content)
+
+            avatar_image_url = (
+                f"{settings.MEDIA_IMAGE_URL}/uploads/user/{avatar_image.filename}"
+            )
+
+            db_user.avatar_image = avatar_image_url
+            print(avatar_image_url)
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+        print(db_user.avatar_image)
+        return db_user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Błąd serwera: {str(e)}",
+        )

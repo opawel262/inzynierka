@@ -1,8 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_serializer
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr
+from app.core.config import settings
 
 
 class Email(BaseModel):
@@ -14,8 +15,7 @@ class NewPassword(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    username: Optional[str] = None
 
 
 class UserCreate(UserUpdate):
@@ -30,6 +30,11 @@ class UserRetrieve(UserUpdate):
     id: UUID
     email: EmailStr
     created_at: datetime
+    avatar_image: str
 
     class Config:
         from_attributes = True
+
+    @field_serializer("avatar_image")
+    def serialize_avatar(self, value: str, _info) -> str:
+        return value if value.startswith("http") else f"{settings.BACKEND_URL}{value}"

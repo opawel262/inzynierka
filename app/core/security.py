@@ -33,10 +33,7 @@ def authenticate_user(db: Session, email: str, password: str) -> Union[User, Fal
     return user
 
 
-def create_token(
-    token_type: Literal["access", "refresh"],
-    data: dict = None
-) -> str:
+def create_token(token_type: Literal["access", "refresh"], data: dict = None) -> str:
     """Create jwt token"""
     to_encode = data.copy()
 

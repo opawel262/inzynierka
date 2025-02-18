@@ -24,6 +24,8 @@
 
 - [x] fix issue (not updating new password) with reset password via Email
 - [ ] fix issue with loading version of module bcrypt
+- [ ] fix issue with jwt
+- [ ] refresh token endpoint not working
 
 ## Documentation
 

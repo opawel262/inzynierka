@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session
 from app.core.security import authenticate_user, create_token
 from . import schemas
 from app.domain.user.models import User
+from app.domain.auth.schemas import Token
 from app.core.config import settings
 from datetime import timedelta, datetime, timezone
-from typing import Union, Literal
+from typing import Union, Literal, Dict
 import jwt
 
 
-async def get_tokens(data: schemas.CreateToken, db: Session) -> dict:
+def get_tokens(data: schemas.CreateToken, db: Session) -> Token:
     user = authenticate_user(db=db, email=data.email, password=data.password)
 
     if not user:
@@ -22,15 +23,13 @@ async def get_tokens(data: schemas.CreateToken, db: Session) -> dict:
     access_token = create_token(
         token_type="access",
         data={"user_id": str(user.id)},
-        expires_delta=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
     refresh_token = create_token(
         token_type="refresh",
         data={"user_id": str(user.id)},
-        expires_delta=settings.REFRESH_TOKEN_EXPIRE_DAYS,
     )
 
-    return {"access_token": access_token, "refresh_token": refresh_token}
+    return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 async def get_access_token_by_refresh_token(refresh_token: str) -> str:
@@ -59,7 +58,7 @@ def get_token_payload(token: str) -> Union[dict]:
 
 
 def _verify_user_access(user: User) -> None:
-    if user.is_active:
+    if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Twoje konto nie jest potwierdzone.",

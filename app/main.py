@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
-from fastapi import staticfiles
+from fastapi.staticfiles import StaticFiles
 
 from app.core.database import engine
 from app.api.main import router as router_api
@@ -24,15 +24,6 @@ def get_configured_server_app() -> FastAPI:
 
     app.include_router(router_api)
 
-    # app.mount(
-    #     "/media/uploads/user",
-    #     staticfiles.StaticFiles(directory="app/media/uploads/user"),
-    #     name="user_uploads",
-    # )
-    app.mount(
-        "/static/", staticfiles.StaticFiles(directory="app/static"), name="static"
-    )
-
     create_db()
     create_admin(app=app, engine=engine)
 
@@ -40,6 +31,12 @@ def get_configured_server_app() -> FastAPI:
 
 
 server_app = get_configured_server_app()
+server_app.mount(
+    "/media",
+    StaticFiles(directory="app/media"),
+    name="media",
+)
+server_app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 if __name__ == "__main__":
     import uvicorn

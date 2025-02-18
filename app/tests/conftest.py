@@ -68,8 +68,7 @@ def create_user(db: Session) -> dict:
     user_data = {
         "email": "adam@adam.pl",
         "password": get_password_hash("PasswordExample"),
-        "first_name": "adam",
-        "last_name": "adam",
+        "username": "username",
         "is_active": True,
     }
     user = User(**user_data)
