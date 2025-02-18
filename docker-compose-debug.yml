@@ -5,21 +5,18 @@ services:
     build: .
     ports:
       - "8000:8000" # FastAPI
+      - "5678:5678" # debugpy
     depends_on:
       - izynierka_db
     volumes:
       - ./app:/code/app
     command: >
-      sh -c "python app/main.py"
+      sh -c "python -m debugpy --listen 0.0.0.0:5678 app/main.py"
     env_file:
       - ./.env
 
   izynierka_db:
     image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
