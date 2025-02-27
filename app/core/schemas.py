@@ -9,5 +9,5 @@ class EmailSchema(BaseModel):
     template_name: str
 
 
-class ReponseDetailSchema(BaseModel):
+class ResponseDetailSchema(BaseModel):
     detail: str

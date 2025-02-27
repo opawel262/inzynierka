@@ -10,12 +10,12 @@
 
 - [x] User authentication
 - [x] Email system - (confirm user via email, reset password via mail)
-- [ ] Configure testing environment for app
+- [X] Configure testing environment for app
 - [ ] User profile management
 - [ ] budget management
 - [ ] invest maangement
-- [ ] Integrate stock prices API
-- [ ] Integrate cryptocurrency prices API
+- [ ] Integrate stock prices API (or scraping)
+- [ ] Integrate cryptocurrency prices API (coingecko)
 - [ ] Add redis (for handling websockets/http for crypto/stocks prices)
 - [ ] Implement WebSockets for real-time monitoring of cryptocurrency and stock prices
 - [ ]

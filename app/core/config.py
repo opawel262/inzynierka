@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     EMAIL_PASSWORD: str
 
     # AUTH TOKENS EXPIRE TIME
-    ACCESS_TOKEN_EXPIRE_MINUTES: timedelta = timedelta(minutes=30)
-    REFRESH_TOKEN_EXPIRE_DAYS: timedelta = timedelta(days=10)
+    ACCESS_TOKEN_EXPIRE_TIME: timedelta = timedelta(minutes=30)
+    REFRESH_TOKEN_EXPIRE_TIME: timedelta = timedelta(days=10)
 
     # CONFIRMATION ACCOUNT TOKEN EXPIRE TIME
     CONFIRMATION_ACCOUNT_TOKEN_EXPIRE_DAYS: timedelta = timedelta(days=7)

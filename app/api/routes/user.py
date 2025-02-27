@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.domain.user import schemas, services, models
 from app.api.deps import get_db, authenticate
-from app.core.schemas import EmailSchema, ReponseDetailSchema
+from app.core.schemas import EmailSchema, ResponseDetailSchema
 from app.core.utils import (
     send_mail,
     validate_email,
@@ -43,7 +43,7 @@ async def create_user(
     user: schemas.UserCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-):
+) -> ResponseDetailSchema:
     # Email validation
     if not validate_email(user.email):
         raise HTTPException(
@@ -110,7 +110,9 @@ async def create_user(
 
 
 @router.post("/confirm/{token}")
-async def confirm_user_account(token: str, db: Session = Depends(get_db)):
+async def confirm_user_account(
+    token: str, db: Session = Depends(get_db)
+) -> ResponseDetailSchema:
     token = services.get_token_by_value(token_value=token, db=db)
     if not token:
         raise HTTPException(
@@ -139,7 +141,7 @@ async def send_reset_password_email(
     body: schemas.Email,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-):
+) -> ResponseDetailSchema:
     if not validate_email(body.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -172,7 +174,7 @@ async def send_reset_password_email(
 @router.post("/reset-password/{token}")
 async def reset_user_password(
     token: str, body: schemas.NewPassword, db: Session = Depends(get_db)
-):
+) -> ResponseDetailSchema:
     token = services.get_token_by_value(token_value=token, db=db)
     if not token:
         raise HTTPException(
@@ -251,6 +253,7 @@ async def update_partial_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Brak danych do aktualizacji.",
             )
+
         db_user = services.get_user_by_id(id=user_id, db=db)
 
         if user:
@@ -263,18 +266,10 @@ async def update_partial_user(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Przesłany plik nie jest obrazem.",
                 )
+
             avatar_image.filename = f"{uuid4()}.{avatar_image.filename.split('.')[-1]}"
-            print("hel")
             image_content = await avatar_image.read()
-            print(avatar_image.filename)
-            current_directory = os.getcwd()
-            app_directory = os.path.join(current_directory, "app")
-            print(f"App directory: {app_directory}")
-            print("Files in the app directory:")
-            for root, dirs, files in os.walk(app_directory):
-                for file_name in files:
-                    print(os.path.join(root, file_name))
-            print(f"{settings.MEDIA_IMAGE_DIR}/uploads/user/{avatar_image.filename}")
+
             with open(
                 f"{settings.MEDIA_IMAGE_DIR}/uploads/user/{avatar_image.filename}", "wb"
             ) as f:
@@ -285,12 +280,13 @@ async def update_partial_user(
             )
 
             db_user.avatar_image = avatar_image_url
-            print(avatar_image_url)
+
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
-        print(db_user.avatar_image)
+
         return db_user
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

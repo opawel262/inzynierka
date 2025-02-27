@@ -2,8 +2,8 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from typing import Union, Literal
-from datetime import timedelta
+from typing import Union, Literal, Dict
+from datetime import timedelta, datetime
 from app.domain.user.models import User
 from app.domain.user.services import get_user_by_email
 from app.domain.auth import schemas
@@ -28,14 +28,22 @@ def authenticate_user(db: Session, email: str, password: str) -> Union[User, Fal
     user = get_user_by_email(email=email, db=db)
     if not user:
         return False
+
     if not verify_password(password, user.password):
         return False
     return user
 
 
-def create_token(token_type: Literal["access", "refresh"], data: dict = None) -> str:
+def create_token(
+    token_type: Literal["access", "refresh"],
+    data: Union[Dict, None] = None,
+    expire_time: Union[timedelta, None] = None,
+) -> str:
     """Create jwt token"""
     to_encode = data.copy()
+
+    if expire_time:
+        to_encode.update({"exp": datetime.utcnow() + expire_time})
 
     to_encode.update(
         {
