@@ -1,9 +1,13 @@
 from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 from uuid import uuid4
 from datetime import datetime
 
 from app.domain.model_base import Base
+
+from app.domain.budget_manager.models import Budget
 
 
 class User(Base):
@@ -13,10 +17,14 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
     is_active = Column(Boolean, default=False, nullable=False)
     username = Column(String, nullable=False, unique=True)
     avatar_image = Column(String, default="/media/defaults/user_avatar.png")
+
+    budgets = relationship(
+        "Budget", back_populates="creator", cascade="all, delete-orphan"
+    )
 
 
 class Token(Base):
