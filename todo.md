@@ -10,7 +10,7 @@
 
 - [x] User authentication
 - [x] Email system - (confirm user via email, reset password via mail)
-- [X] Configure testing environment for app
+- [x] Configure testing environment for app
 - [ ] User profile management
 - [ ] budget management
 - [ ] invest maangement
@@ -24,8 +24,8 @@
 
 - [x] fix issue (not updating new password) with reset password via Email
 - [ ] fix issue with loading version of module bcrypt
-- [ ] fix issue with jwt
-- [ ] refresh token endpoint not working
+- [] fix issue with jwt
+- [x] refresh token endpoint not working
 
 ## Documentation
 
