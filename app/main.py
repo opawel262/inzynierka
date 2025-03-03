@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine
 from app.api.main import router as router_api
 from app.domain.model_base import Base
@@ -23,6 +23,14 @@ def get_configured_server_app() -> FastAPI:
     add_pagination(app)
 
     app.include_router(router_api)
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     create_db()
     create_admin(app=app, engine=engine)
