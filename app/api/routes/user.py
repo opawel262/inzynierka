@@ -100,7 +100,7 @@ async def create_user(
     )
     email = EmailSchema(
         email=[user.email],
-        body={"link": f"{settings.FRONTED_URL}/confirm-user?token={token.value}"},
+        body={"link": f"{settings.FRONTED_URL}/auth/confirm-user?token={token.value}"},
         subject="Aktywuj konto",
         template_name="email_confirmation",
     )
@@ -160,7 +160,7 @@ async def send_reset_password_email(
 
         email = EmailSchema(
             email=[user.email],
-            body={"link": f"{settings.FRONTED_URL}/reset-password?token={token.value}"},
+            body={"link": f"{settings.FRONTED_URL}/auth/reset-password?token={token.value}"},
             subject="Resetowanie hasła",
             template_name="password_reset",
         )
