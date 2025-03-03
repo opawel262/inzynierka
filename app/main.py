@@ -33,8 +33,8 @@ def get_configured_server_app() -> FastAPI:
             "http://localhost:3000/",
         ],
         allow_credentials=True,
-        allow_methods=[""],
-        allow_headers=[""],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     create_db()
