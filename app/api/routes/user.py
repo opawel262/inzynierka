@@ -196,10 +196,10 @@ async def reset_user_password(
         )
 
     # Password validation
-    if len(body.new_password) < 12:
+    if len(body.new_password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi mieć co najmniej 12 znaków.",
+            detail="Hasło musi mieć co najmniej 8 znaków.",
         )
     if not re.search(r"\d", body.new_password):
         raise HTTPException(
