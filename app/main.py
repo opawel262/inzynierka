@@ -23,10 +23,11 @@ def get_configured_server_app() -> FastAPI:
     add_pagination(app)
 
     app.include_router(router_api)
-    
+
+    # TODO: add case for production
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["http://localhost", "http://127.0.0.1"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
