@@ -64,10 +64,10 @@ async def create_user(
         )
 
     # Password validation
-    if len(user.password) < 12:
+    if len(user.password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi mieć co najmniej 12 znaków.",
+            detail="Hasło musi mieć co najmniej 8 znaków.",
         )
     if not re.search(r"\d", user.password):
         raise HTTPException(
