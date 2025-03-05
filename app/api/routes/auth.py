@@ -64,7 +64,7 @@ async def refresh_token(
 
     return {"detail": "Token odświeżony pomyślnie"}
 
-@router.delete("/logout", status_code=status.HTTP_201_CREATED)
+@router.delete("/logout", status_code=status.HTTP_200_OK)
 async def logout(
     response: Response
 ) -> ResponseDetailSchema:
