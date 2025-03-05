@@ -20,7 +20,7 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
     is_active = Column(Boolean, default=False, nullable=False)
     username = Column(String, nullable=False, unique=True)
-    avatar_image = Column(String, default="/media/defaults/user_avatar.png")
+    avatar_image = Column(String, default="/media/defaults/user_avatar.jpg")
 
     budgets = relationship(
         "Budget", back_populates="creator", cascade="all, delete-orphan"
