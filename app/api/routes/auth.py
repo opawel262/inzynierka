@@ -64,12 +64,9 @@ async def refresh_token(
 
     return {"detail": "Token odświeżony pomyślnie"}
 
-@router.delete(
-    "/logout",
-    status_code=status.HTTP_201_CREATED,
-)
+@router.delete("/logout", status_code=status.HTTP_201_CREATED)
 async def logout(
-    response: Response, refresh_token: Optional[str] = Cookie(None)
+    response: Response
 ) -> ResponseDetailSchema:
 
     response.delete_cookie(key="access_token")
