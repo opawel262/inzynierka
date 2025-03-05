@@ -21,10 +21,17 @@ class Settings(BaseSettings):
     # FROM ENV
     FRONTED_URL: str
     BACKEND_URL: str
+    
     SQLALCHEMY_DATABASE_URL: str
+    
+    REDIS_HOST: str
+    REDIS_PORT: str
+    
     SECRET_KEY: str
+    
     EMAIL_EMAIL: EmailStr
     EMAIL_PASSWORD: str
+    
 
     # AUTH TOKENS EXPIRE TIME
     ACCESS_TOKEN_EXPIRE_TIME: timedelta = timedelta(minutes=30)

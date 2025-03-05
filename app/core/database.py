@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.base import Engine
+import redis
 
 connection_engine = None
 
@@ -21,3 +22,5 @@ while connection_engine is None:
 engine: Engine = connection_engine
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True)

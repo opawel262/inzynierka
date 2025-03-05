@@ -18,13 +18,15 @@
 - [ ] Integrate cryptocurrency prices API (coingecko)
 - [ ] Add redis (for handling websockets/http for crypto/stocks prices)
 - [ ] Implement WebSockets for real-time monitoring of cryptocurrency and stock prices
-- [ ]
+
+## TE RZECZY CO SIE MATI CZEPIA
+- [ ] Dodaj limit do maila
 
 ## Bug and issue Fixes
 
 - [x] fix issue (not updating new password) with reset password via Email
 - [ ] fix issue with loading version of module bcrypt
-- [] fix issue with jwt
+- [ ] fix issue with jwt
 - [x] refresh token endpoint not working
 
 ## Documentation
