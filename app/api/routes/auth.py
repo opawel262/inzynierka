@@ -63,3 +63,18 @@ async def refresh_token(
     )
 
     return {"detail": "Token odświeżony pomyślnie"}
+
+@router.post(
+    "/refresh-token",
+    status_code=status.HTTP_201_CREATED,
+)
+async def refresh_token(
+    response: Response, refresh_token: Optional[str] = Cookie(None)
+) -> ResponseDetailSchema:
+
+    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")
+
+    return {
+        "detail": "Wylogowano"
+    }
