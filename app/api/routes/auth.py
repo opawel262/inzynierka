@@ -64,11 +64,11 @@ async def refresh_token(
 
     return {"detail": "Token odświeżony pomyślnie"}
 
-@router.post(
-    "/refresh-token",
+@router.delete(
+    "/logout",
     status_code=status.HTTP_201_CREATED,
 )
-async def refresh_token(
+async def logout(
     response: Response, refresh_token: Optional[str] = Cookie(None)
 ) -> ResponseDetailSchema:
 
