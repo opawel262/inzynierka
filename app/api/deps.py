@@ -61,7 +61,7 @@ def authenticate(
     """
     if not access_token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Nie jesteś zalogowany."
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Nie jesteś zalogowany"
         )
     # Function to retrieve user from token (pseudo-code)
     payload = get_token_payload(access_token)
@@ -72,7 +72,7 @@ def authenticate(
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Użytkownik jest nieaktywny."
+            status_code=status.HTTP_403_FORBIDDEN, detail="Użytkownik jest nieaktywny"
         )
 
     return user_id

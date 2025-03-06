@@ -48,46 +48,46 @@ async def create_user(
     if not validate_email(user.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Niepoprawny format adresu email.",
+            detail="Niepoprawny format adresu email",
         )
 
     if services.get_user_by_email(email=user.email, db=db):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ten adres email jest już zarejestrowany.",
+            detail="Ten adres email jest już zarejestrowany",
         )
 
     if services.get_user_by_username(username=user.username, db=db):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nazwa użytkownika jest już zajęta.",
+            detail="Nazwa użytkownika jest już zajęta",
         )
 
     # Password validation
     if len(user.password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi mieć co najmniej 8 znaków.",
+            detail="Hasło musi mieć co najmniej 8 znaków",
         )
     if not re.search(r"\d", user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jedną cyfrę.",
+            detail="Hasło musi zawierać co najmniej jedną cyfrę",
         )
     if not re.search(r"[A-Z]", user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jedną wielką literę.",
+            detail="Hasło musi zawierać co najmniej jedną wielką literę",
         )
     if not re.search(r"[a-z]", user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jedną małą literę.",
+            detail="Hasło musi zawierać co najmniej jedną małą literę",
         )
     if not re.search(r"[!@#$%^&*()_+\-=\[\]{}|;':,.<>?/]", user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jeden znak specjalny.",
+            detail="Hasło musi zawierać co najmniej jeden znak specjalny",
         )
 
     user = services.create_user(user=user, db=db)
@@ -106,7 +106,7 @@ async def create_user(
     )
     background_tasks.add_task(send_mail, email)
 
-    return {"detail": "Proszę sprawdzić swój email, aby aktywować konto."}
+    return {"detail": "Proszę sprawdzić swój email, aby aktywować konto"}
 
 
 @router.post("/confirm/{token}")
@@ -117,23 +117,23 @@ async def confirm_user_account(
     if not token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nieprawidłowy token sesji.",
+            detail="Nieprawidłowy token sesji",
         )
     user = services.get_user_by_id(id=token.user_id, db=db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Użytkownik nie istnieje.",
+            detail="Użytkownik nie istnieje",
         )
     if user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Konto jest już aktywne.",
+            detail="Konto jest już aktywne",
         )
 
     user.is_active = True
     db.commit()
-    return {"detail": "Konto zostało pomyślnie aktywowane."}
+    return {"detail": "Konto zostało pomyślnie aktywowane"}
 
 
 @router.post("/reset-password")
@@ -145,7 +145,7 @@ async def send_reset_password_email(
     if not validate_email(body.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Niepoprawny format adresu email.",
+            detail="Niepoprawny format adresu email",
         )
 
     user = services.get_user_by_email(email=body.email, db=db)
@@ -179,47 +179,47 @@ async def reset_user_password(
     if not token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nieprawidłowy token sesji.",
+            detail="Nieprawidłowy token sesji",
         )
 
     user = services.get_user_by_id(id=token.user_id, db=db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nieprawidłowy token sesji.",
+            detail="Nieprawidłowy token sesji",
         )
 
     if token.expiration_time < datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Sesja wygasła.",
+            detail="Sesja wygasła",
         )
 
     # Password validation
     if len(body.new_password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi mieć co najmniej 8 znaków.",
+            detail="Hasło musi mieć co najmniej 8 znaków",
         )
     if not re.search(r"\d", body.new_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jedną cyfrę.",
+            detail="Hasło musi zawierać co najmniej jedną cyfrę",
         )
     if not re.search(r"[A-Z]", body.new_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jedną wielką literę.",
+            detail="Hasło musi zawierać co najmniej jedną wielką literę",
         )
     if not re.search(r"[a-z]", body.new_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jedną małą literę.",
+            detail="Hasło musi zawierać co najmniej jedną małą literę",
         )
     if not re.search(r"[!@#$%^&*()_+\-=\[\]{}|;':,.<>?/]", body.new_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hasło musi zawierać co najmniej jeden znak specjalny.",
+            detail="Hasło musi zawierać co najmniej jeden znak specjalny",
         )
 
     user.password = get_password_hash(body.new_password)
@@ -228,7 +228,7 @@ async def reset_user_password(
 
     services.delete_token_by_value(token_value=token.value, db=db)
 
-    return {"detail": "Hasło zostało pomyślnie zresetowane."}
+    return {"detail": "Hasło zostało pomyślnie zresetowane"}
 
 
 @router.get("/me")
@@ -251,20 +251,25 @@ async def update_partial_user(
         if (user or avatar_image) is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Brak danych do aktualizacji.",
+                detail="Brak danych do aktualizacji",
             )
 
         db_user = services.get_user_by_id(id=user_id, db=db)
 
         if user:
             user = json.loads(user)
-            user_update = schemas.UserUpdate(**user)
+            if services.get_user_by_username(user['username'], db):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='Podana nazwa użytkownika jest zajęta'
+                )
+            db_user.username = user['username']
 
         if avatar_image:
             if not check_file_if_image(avatar_image):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Przesłany plik nie jest obrazem.",
+                    detail="Przesłany plik nie jest obrazem",
                 )
 
             avatar_image.filename = f"{uuid4()}.{avatar_image.filename.split('.')[-1]}"
@@ -286,7 +291,10 @@ async def update_partial_user(
             db.refresh(db_user)
 
         return db_user
-
+    
+    except HTTPException as e:
+        raise e
+    
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
