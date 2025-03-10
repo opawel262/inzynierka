@@ -14,13 +14,10 @@
 - [ ] User profile management
 - [ ] budget management
 - [ ] invest maangement
-- [ ] Integrate stock prices API (or scraping)
-- [ ] Integrate cryptocurrency prices API (coingecko)
-- [ ] Add redis (for handling websockets/http for crypto/stocks prices)
-- [ ] Implement WebSockets for real-time monitoring of cryptocurrency and stock prices
-
-## TE RZECZY CO SIE MATI CZEPIA
-- [ ] Dodaj limit do maila
+- [ ] Integrate cryptocurrency prices API (coingecko coincap)
+- [ ] Add redis (for handling websockets/http for crypto prices)
+- [ ] Implement WebSockets for real-time monitoring of cryptocurrency
+- [ ] Add limiter for sending email related with ceratin endpoint per hour
 
 ## Bug and issue Fixes
 
