@@ -5,6 +5,10 @@ from fastapi import UploadFile
 from app.core.schemas import EmailSchema
 from app.core.config import email_conf
 import re
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 async def send_mail(email: EmailSchema):

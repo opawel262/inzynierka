@@ -7,6 +7,7 @@ from fastapi import (
     UploadFile,
     File,
     Form,
+    Request,
 )
 
 from sqlalchemy.orm import Session
@@ -19,6 +20,7 @@ from app.core.utils import (
     validate_email,
     generate_token,
     check_file_if_image,
+    limiter,
 )
 from app.core.responses.user import register_response
 from app.core.config import settings
@@ -40,7 +42,9 @@ router = APIRouter(
 @router.post(
     "/register", responses=register_response, status_code=status.HTTP_201_CREATED
 )
+@limiter.limit("10/minute")
 async def create_user(
+    request: Request,
     user: schemas.UserCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -111,8 +115,9 @@ async def create_user(
 
 
 @router.post("/confirm/{token}")
+@limiter.limit("10/minute")
 async def confirm_user_account(
-    token: str, db: Session = Depends(get_db)
+    request: Request, token: str, db: Session = Depends(get_db)
 ) -> ResponseDetailSchema:
     token = services.get_token_by_value(token_value=token, db=db)
     if not token:
@@ -138,7 +143,9 @@ async def confirm_user_account(
 
 
 @router.post("/reset-password")
+@limiter.limit("50/minute")
 async def send_reset_password_email(
+    request: Request,
     body: schemas.Email,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -192,8 +199,12 @@ async def send_reset_password_email(
 
 
 @router.post("/reset-password/{token}")
+@limiter.limit("50/minute")
 async def reset_user_password(
-    token: str, body: schemas.NewPassword, db: Session = Depends(get_db)
+    request: Request,
+    token: str,
+    body: schemas.NewPassword,
+    db: Session = Depends(get_db),
 ) -> ResponseDetailSchema:
     token = services.get_token_by_value(token_value=token, db=db)
     if not token:
@@ -252,7 +263,9 @@ async def reset_user_password(
 
 
 @router.get("/me")
+@limiter.limit("10/minute")
 async def get_user_by_access_token(
+    request: Request,
     user_id: Annotated[int, Depends(authenticate)],
     db: Session = Depends(get_db),
 ) -> schemas.UserRetrieve:
@@ -260,7 +273,9 @@ async def get_user_by_access_token(
 
 
 @router.patch("/me")
+@limiter.limit("60/minute")
 async def update_partial_user(
+    request: Request,
     user_id: Annotated[int, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[Union[schemas.UserUpdate, str], Form(...)] = None,

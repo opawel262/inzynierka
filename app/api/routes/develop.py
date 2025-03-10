@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from sqlalchemy import MetaData, text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.domain.model_base import Base
 from app.core.database import engine
 from app.api.deps import get_db
+from app.core.utils import limiter
 
 router = APIRouter(
     prefix="/develop",
@@ -13,7 +14,8 @@ router = APIRouter(
 
 
 @router.delete("/clear-database")
-def clear_data(db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def clear_data(request: Request, db: Session = Depends(get_db)):
     try:
         metadata = MetaData()
         metadata.reflect(bind=engine)
@@ -40,7 +42,8 @@ def clear_data(db: Session = Depends(get_db)):
 
 
 @router.delete("/drop-database-tables")
-def drop_all_tables(db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+def drop_all_tables(request: Request, db: Session = Depends(get_db)):
     try:
         # Reflect the metadata from the database
         metadata = MetaData()

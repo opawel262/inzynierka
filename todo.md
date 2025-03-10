@@ -12,7 +12,7 @@
 - [x] Email system - (confirm user via email, reset password via mail)
 - [x] Configure testing environment for app
 - [X] Implement email rate limiter (limit email sends to once per 30 minutes per endpoint)
-- [ ] Add rate limiter for all API endpoints
+- [X] Add rate limiter for all API endpoints
 - [ ] User profile management
 - [ ] budget management
 - [ ] invest maangement

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Cookie, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Cookie, Response, Request
 
 from sqlalchemy.orm import Session
 
@@ -9,12 +9,12 @@ from app.domain.auth.schemas import Token
 
 from app.core.config import settings
 from app.core.schemas import ResponseDetailSchema
+from app.core.utils import limiter
 from app.api.deps import get_db
 
 from typing import Union, Optional, Annotated, Dict
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
 
 router = APIRouter(
     prefix="/auth",
@@ -23,8 +23,12 @@ router = APIRouter(
 
 
 @router.post("/token", status_code=status.HTTP_201_CREATED)
+@limiter.limit("1/second")
 async def authenticate_user(
-    response: Response, data: CreateToken, db: Session = Depends(get_db)
+    request: Request,
+    response: Response,
+    data: CreateToken,
+    db: Session = Depends(get_db),
 ) -> ResponseDetailSchema:
 
     tokens = get_tokens(data=data, db=db)
@@ -49,8 +53,9 @@ async def authenticate_user(
     "/refresh-token",
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("1/second")
 async def refresh_token(
-    response: Response, refresh_token: Optional[str] = Cookie(None)
+    request: Request, response: Response, refresh_token: Optional[str] = Cookie(None)
 ) -> ResponseDetailSchema:
 
     access_token = await get_access_token_by_refresh_token(refresh_token)
@@ -64,14 +69,12 @@ async def refresh_token(
 
     return {"detail": "Token odświeżony pomyślnie"}
 
+
 @router.delete("/logout", status_code=status.HTTP_200_OK)
-async def logout(
-    response: Response
-) -> ResponseDetailSchema:
+@limiter.limit("1/second")
+async def logout(request: Request, response: Response) -> ResponseDetailSchema:
 
     response.delete_cookie(key="access_token")
     response.delete_cookie(key="refresh_token")
 
-    return {
-        "detail": "Wylogowano"
-    }
+    return {"detail": "Wylogowano"}
