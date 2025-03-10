@@ -11,13 +11,14 @@
 - [x] User authentication
 - [x] Email system - (confirm user via email, reset password via mail)
 - [x] Configure testing environment for app
+- [X] Implement email rate limiter (limit email sends to once per 30 minutes per endpoint)
+- [ ] Add rate limiter for all API endpoints
 - [ ] User profile management
 - [ ] budget management
 - [ ] invest maangement
 - [ ] Integrate cryptocurrency prices API (coingecko coincap)
 - [ ] Add redis (for handling websockets/http for crypto prices)
 - [ ] Implement WebSockets for real-time monitoring of cryptocurrency
-- [ ] Add limiter for sending email related with ceratin endpoint per hour
 
 ## Bug and issue Fixes
 

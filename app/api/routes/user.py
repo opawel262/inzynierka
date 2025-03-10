@@ -23,6 +23,7 @@ from app.core.utils import (
 from app.core.responses.user import register_response
 from app.core.config import settings
 from app.core.security import get_password_hash
+from app.core.database import redis_db
 from datetime import timedelta, datetime
 from typing import Union, Annotated
 import re
@@ -149,6 +150,16 @@ async def send_reset_password_email(
         )
 
     user = services.get_user_by_email(email=body.email, db=db)
+
+    email_redis_key = f"reset_password_email:{user.email}"
+    attempts = redis_db.get(email_redis_key)
+
+    if attempts and int(attempts) >= settings.RESET_LIMIT_EMAIL_RESET_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Osiągnięto limit prób resetowania hasła. Spróbuj ponownie za 30 minut",
+        )
+
     if user is not None:
         token = services.create_user_token(
             user_id=user.id,
@@ -160,11 +171,20 @@ async def send_reset_password_email(
 
         email = EmailSchema(
             email=[user.email],
-            body={"link": f"{settings.FRONTED_URL}/auth/reset-password?token={token.value}"},
+            body={
+                "link": f"{settings.FRONTED_URL}/auth/reset-password?token={token.value}"
+            },
             subject="Resetowanie hasła",
             template_name="password_reset",
         )
         background_tasks.add_task(send_mail, email)
+
+        if attempts:
+            redis_db.incr(email_redis_key)
+        else:
+            redis_db.setex(
+                email_redis_key, settings.RESET_TIMEOUT_EMAIL_RESET_PASSWORD_IN_SEC, 1
+            )
 
     return {
         "detail": "Jeśli konto z podanym adresem email istnieje, wysłano wiadomość z instrukcjami dotyczącymi zmiany hasła."
@@ -258,12 +278,12 @@ async def update_partial_user(
 
         if user:
             user = json.loads(user)
-            if services.get_user_by_username(user['username'], db):
+            if services.get_user_by_username(user["username"], db):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail='Podana nazwa użytkownika jest zajęta'
+                    detail="Podana nazwa użytkownika jest zajęta",
                 )
-            db_user.username = user['username']
+            db_user.username = user["username"]
 
         if avatar_image:
             if not check_file_if_image(avatar_image):
@@ -291,10 +311,10 @@ async def update_partial_user(
             db.refresh(db_user)
 
         return db_user
-    
+
     except HTTPException as e:
         raise e
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

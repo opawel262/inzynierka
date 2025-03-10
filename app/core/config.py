@@ -18,6 +18,9 @@ class Settings(BaseSettings):
 
     ALGORITHM: str = "HS256"
 
+    # Rate limiter for email
+    RESET_LIMIT_EMAIL_RESET_PASSWORD: int = 3
+    RESET_TIMEOUT_EMAIL_RESET_PASSWORD_IN_SEC: int = 1800  # 30 minutes
     # AUTH TOKENS EXPIRE TIME
     ACCESS_TOKEN_EXPIRE_TIME: timedelta = timedelta(minutes=30)
     REFRESH_TOKEN_EXPIRE_TIME: timedelta = timedelta(days=10)
