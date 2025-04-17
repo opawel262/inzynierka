@@ -24,7 +24,7 @@ from app.core.utils import (
 )
 from app.core.responses.user import register_response
 from app.core.config import settings
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.core.database import redis_db
 from datetime import timedelta, datetime
 from typing import Union, Annotated
@@ -47,7 +47,7 @@ async def create_user(
     request: Request,
     user: schemas.UserCreate,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> ResponseDetailSchema:
     # Email validation
     if not validate_email(user.email):
@@ -117,7 +117,7 @@ async def create_user(
 @router.post("/confirm/{token}")
 @limiter.limit("10/minute")
 async def confirm_user_account(
-    request: Request, token: str, db: Session = Depends(get_db)
+    request: Request, token: str, db: Annotated[Session, Depends(get_db)]
 ) -> ResponseDetailSchema:
     token = services.get_token_by_value(token_value=token, db=db)
     if not token:
@@ -148,7 +148,7 @@ async def send_reset_password_email(
     request: Request,
     body: schemas.Email,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> ResponseDetailSchema:
     if not validate_email(body.email):
         raise HTTPException(
@@ -204,7 +204,7 @@ async def reset_user_password(
     request: Request,
     token: str,
     body: schemas.NewPassword,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> ResponseDetailSchema:
     token = services.get_token_by_value(token_value=token, db=db)
     if not token:
@@ -267,14 +267,14 @@ async def reset_user_password(
 async def get_user_by_access_token(
     request: Request,
     user_id: Annotated[int, Depends(authenticate)],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> schemas.UserRetrieve:
     return services.get_user_by_id(id=user_id, db=db)
 
 
 @router.patch("/me")
 @limiter.limit("60/minute")
-async def update_partial_user(
+async def update_partial_user_by_access_token(
     request: Request,
     user_id: Annotated[int, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
@@ -335,3 +335,70 @@ async def update_partial_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Błąd serwera: {str(e)}",
         )
+
+
+@router.delete("/me")
+@limiter.limit("50/minute")
+async def delete_user_by_access_token(
+    request: Request,
+    password_user: schemas.PasswordUser,
+    user_id: Annotated[int, Depends(authenticate)],
+    db: Annotated[Session, Depends(get_db)],
+) -> ResponseDetailSchema:
+    user = services.get_user_by_id(user_id, db)
+    if not verify_password(password_user.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nieprawidłowe hasło",
+        )
+
+    db.delete(user)
+    db.commit()
+
+    return {"detail": "Konto zostało pomyślnie usunięte"}
+
+
+@router.put("/me/avatar-image/reset-default")
+@limiter.limit("50/minute")
+async def reset_user_avatar_to_default(
+    request: Request,
+    user_id: Annotated[int, Depends(authenticate)],
+    db: Annotated[Session, Depends(get_db)],
+) -> schemas.AvatarImageUser:
+    db_user = services.get_user_by_id(user_id, db)
+
+    if db_user.avatar_image == settings.DEFAULT_USER_AVATAR_IMAGE_URL:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar użytkownika jest już ustawiony na domyślny",
+        )
+
+    db_user.avatar_image = settings.DEFAULT_USER_AVATAR_IMAGE_URL
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
+
+
+@router.post("/me/reset-password")
+@limiter.limit("50/minute")
+async def reset_password_user_by_access_token(
+    request: Request,
+    reset_password: schemas.ResetPasswordUser,
+    user_id: Annotated[int, Depends(authenticate)],
+    db: Annotated[Session, Depends(get_db)],
+) -> ResponseDetailSchema:
+    db_user = services.get_user_by_id(user_id, db)
+    print(get_password_hash(reset_password.password))
+    print(db_user.password)
+    if not verify_password(reset_password.password, db_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nieprawidłowe hasło",
+        )
+    db_user.password = get_password_hash(reset_password.new_password)
+    print(db_user.password)
+    db.refresh(db_user)
+    db.commit()
+
+    return {"detail": "Hasło zostało pomyślnie zmienione"}

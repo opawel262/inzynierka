@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     PASSWORD_RESET_TOKEN_EXPIRE_TIME_MINUTES: timedelta = timedelta(minutes=15)
 
     # static media
+    DEFAULT_USER_AVATAR_IMAGE_URL: str = "/static/defaults/user_avatar.png"
     MEDIA_IMAGE_URL: str = "/media"
     MEDIA_IMAGE_DIR: str = "/code/app/media"
 

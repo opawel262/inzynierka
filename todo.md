@@ -11,8 +11,8 @@
 - [x] User authentication
 - [x] Email system - (confirm user via email, reset password via mail)
 - [x] Configure testing environment for app
-- [X] Implement email rate limiter (limit email sends to once per 30 minutes per endpoint)
-- [X] Add rate limiter for all API endpoints
+- [x] Implement email rate limiter (limit email sends to once per 30 minutes per endpoint)
+- [x] Add rate limiter for all API endpoints
 - [ ] User profile management
 - [ ] budget management
 - [ ] invest maangement
@@ -22,9 +22,10 @@
 
 ## Bug and issue Fixes
 
-- [x] fix issue (not updating new password) with reset password via Email
+- [ ] fix issue with reseting password via access token and password, not working and i don't have idea why
 - [ ] fix issue with loading version of module bcrypt
-- [ ] fix issue with jwt
+- [x] fix issue (not updating new password) with reset password via Email
+- [x] fix issue with jwt when access_token expire it return weird response change it!!!
 - [x] refresh token endpoint not working
 
 ## Documentation
