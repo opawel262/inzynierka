@@ -31,14 +31,14 @@ async def test_user_register_and_confirm(
     register_data = {
         "email": "test@test.pl",
         "password": "Password123!",
-        "firstname": "First",
-        "lastname": "Last",
+        "username": "adam mals",
+
     }
 
     res = client.post("/users/register", json=register_data)
 
     assert res.status_code == 201
-    assert res.json() == {"detail": "Proszę sprawdzić swój email, aby aktywować konto."}
+    assert res.json() == {"detail": "Proszę sprawdzić swój email, aby aktywować konto"}
 
     assert mock_background_task.call_count == 1
 
@@ -49,11 +49,13 @@ async def test_user_register_and_confirm(
 
     email_args = background_task_args[1]
 
-    token = email_args.body["token"]
+    link = email_args.body["link"]
+    token = link.split("?token=")[1]
+    
     confirm_res = client.post(f"/users/confirm/{token}")
 
     assert confirm_res.status_code == 200
-    assert confirm_res.json() == {"detail": "Konto zostało pomyślnie aktywowane."}
+    assert confirm_res.json() == {"detail": "Konto zostało pomyślnie aktywowane"}
 
     user = get_user_by_email("test@test.pl", session)
     assert user.is_active is True
