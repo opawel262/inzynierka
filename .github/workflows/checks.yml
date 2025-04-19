@@ -1,0 +1,23 @@
+---
+    name: Checks
+    
+    on:
+      push:
+        branches: [main]
+      pull_request:
+        types: [opened, synchronize, reopened]
+    
+    jobs:
+      test:
+        name: Run Tests
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+    
+          - name: Run pytest in Docker
+            run: docker compose -f "docker-compose.test.yml" up --build --abort-on-container-exit --exit-code-from web_test
+    
+          - name: Clean up containers and volumes
+            run: docker compose -f "docker-compose.test.yml" down --volumes --remove-orphans
+    
