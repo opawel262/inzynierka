@@ -26,6 +26,8 @@ jobs:
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "SQLALCHEMY_DATABASE_URL=${{ secrets.SQLALCHEMY_DATABASE_URL }}" >> .env
+          echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env
+          echo "FRONTED_URL=${{ secrets.FRONTED_URL }}" >> .env
 
       - name: Run pytest in Docker
         run: docker compose -f "docker-compose.test.yml" up --build --abort-on-container-exit --exit-code-from web_test
