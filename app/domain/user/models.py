@@ -8,8 +8,6 @@ from datetime import datetime
 from app.core.config import settings
 from app.domain.model_base import Base
 
-from app.domain.budget_manager.models import Budget
-
 
 class User(Base):
 
@@ -24,7 +22,10 @@ class User(Base):
     avatar_image = Column(String, default=settings.DEFAULT_USER_AVATAR_IMAGE_URL)
 
     budgets = relationship(
-        "Budget", back_populates="creator", cascade="all, delete-orphan"
+        "Budget", back_populates="owner", cascade="all, delete-orphan"
+    )
+    portfolios = relationship(
+        "Portfolio", back_populates="owner", cascade="all, delete-orphan"
     )
 
 

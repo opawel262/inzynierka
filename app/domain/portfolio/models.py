@@ -12,11 +12,10 @@ class Portfolio(Base):
     __tablename__ = "portfolios"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
-    owner = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
     updated_at = Column(DateTime, server_default=func.timezone("UTC", func.now()), onupdate=func.timezone("UTC", func.now()))
 
-    # Relationships
     owner = relationship("User", back_populates="portfolios")
     portfolio_transactions = relationship("PortfolioTransaction", back_populates="portfolio", cascade="all, delete-orphan")
     
@@ -43,7 +42,8 @@ class Asset(Base):
     icon = Column(String, nullable=True)  # Optiunalll
     asset_type = Column(String, nullable=False)  # "stock" or "crypto"
 
-    transactions = relationship("AssetTransaction", back_populates="asset")
+    transactions = relationship("PortfolioTransaction", back_populates="asset")
+    historical_prices = relationship("AssetHistoricalPrice", back_populates="asset")
 
 
 class AssetHistoricalPrice(Base):
@@ -52,12 +52,11 @@ class AssetHistoricalPrice(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
     asset_id = Column(UUID(as_uuid=True), ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
     
-    date = Column(DateTime, nullable=False)  # np. timestamp lub data w UTC
+    date = Column(DateTime, nullable=False)  
     open_price = Column(Float, nullable=True)
     close_price = Column(Float, nullable=True)
     high_price = Column(Float, nullable=True)
     low_price = Column(Float, nullable=True)
     volume = Column(Float, nullable=True)
 
-    # Relacje
     asset = relationship("Asset", back_populates="historical_prices")

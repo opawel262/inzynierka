@@ -19,10 +19,10 @@ class Budget(Base):
         onupdate=func.timezone("UTC", func.now()),
     )
     is_public = Column(Boolean, default=False, nullable=False)
-    creator_id = Column(
+    owner_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    creator = relationship("User", back_populates="budgets")
+    owner = relationship("User", back_populates="budgets")
     transactions = relationship("BudgetTransaction", back_populates="budget")
 
 
