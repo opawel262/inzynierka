@@ -12,6 +12,7 @@ from app.domain.model_base import Base
 class Budget(Base):
     __tablename__ = "budgets"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
+    title = Column(String(64), nullable=False)
     created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
     updated_at = Column(
         DateTime,
@@ -29,12 +30,13 @@ class Budget(Base):
 class BudgetTransaction(Base):
     __tablename__ = "budget_transactions"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
+    title = Column(String(64), nullable=False)
     budget_id = Column(
         UUID(as_uuid=True), ForeignKey("budgets.id", ondelete="CASCADE"), nullable=False
     )
-    transaction_type = Column(String, nullable=False)  # "dochod" or "przychod"
+    transaction_type = Column(String(10), nullable=False)  # "dochod" or "przychod"
     amount = Column(Float, nullable=False)
-    description = Column(String, nullable=True)
+    description = Column(String(255), nullable=True)
     category_id = Column(
         Integer,
         ForeignKey("categories.id", ondelete="SET NULL"),
