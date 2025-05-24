@@ -46,6 +46,10 @@
 - [x] fix issue with jwt when access_token expire it return weird response change it!!!
 - [x] refresh token endpoint not working
 
+## Extra Notes for Project Features
+
+- Enhance category details by adding attributes such as type ("basic", "daily", "other") and classification (e.g., "income" or "expense") to improve category search and filtering.
+
 ## Documentation
 
 - [ ] Update README file
