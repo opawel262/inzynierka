@@ -6,6 +6,11 @@ from fastapi import FastAPI
 from sqlalchemy.engine.base import Engine
 from app.core.config import settings
 from app.domain.user.views import UserAdminView
+from app.domain.budget.views import (
+    BudgetAdminView,
+    BudgetTransactionAdminView,
+    CategoryAdminView,
+)
 
 
 class AdminAuth(AuthenticationBackend):
@@ -39,3 +44,6 @@ def create_admin(app: FastAPI, engine: Engine) -> None:
     admin = Admin(app=app, engine=engine, authentication_backend=authentication_backend)
 
     admin.add_view(UserAdminView)
+    admin.add_view(BudgetAdminView)
+    admin.add_view(BudgetTransactionAdminView)
+    admin.add_view(CategoryAdminView)
