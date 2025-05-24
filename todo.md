@@ -16,11 +16,11 @@
 - [x] User profile management
 - [ ] Budget management
 
-  - [ ] GET /api/budgets — pobierz wszystkie budżety użytkownika
-  - [ ] POST /api/budgets — utwórz nowy budżet
-  - [ ] GET /api/budgets/{budget_id} — szczegóły jednego budżetu
-  - [ ] PATCH /api/budgets/{budget_id} — edytuj budżet
-  - [ ] DELETE /api/budgets/{budget_id} — usuń budżet
+  - [x] GET /api/budgets — pobierz wszystkie budżety użytkownika
+  - [x] POST /api/budgets — utwórz nowy budżet
+  - [x] GET /api/budgets/{budget_id} — szczegóły jednego budżetu
+  - [x] PATCH /api/budgets/{budget_id} — edytuj budżet
+  - [x] DELETE /api/budgets/{budget_id} — usuń budżet
 
   - [ ] GET /api/budgets/{budget_id}/summary — podsumowanie pewnie jakies info jak do raportu tylko mniej szczegolowe nwm
 
