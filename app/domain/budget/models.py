@@ -13,6 +13,8 @@ class Budget(Base):
     __tablename__ = "budgets"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
     title = Column(String(64), nullable=False)
+    description = Column(String(255), nullable=True)
+    color = Column(String(20), nullable=False)
     created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
     updated_at = Column(
         DateTime,
