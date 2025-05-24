@@ -28,6 +28,12 @@ jobs:
           echo "SQLALCHEMY_DATABASE_URL=${{ secrets.SQLALCHEMY_DATABASE_URL }}" >> .env
           echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env
           echo "FRONTED_URL=${{ secrets.FRONTED_URL }}" >> .env
+          echo "EXAMPLE_USER_EMAIL=${{ secrets.EXAMPLE_USER_EMAIL }}" >> .env
+          echo "EXAMPLE_USER_PASSWORD=${{ secrets.EXAMPLE_USER_PASSWORD }}" >> .env
+          echo "EXAMPLE_USERNAME=${{ secrets.EXAMPLE_USERNAME }}" >> .env
+          echo "EXAMPLE_USER_2_EMAIL=${{ secrets.EXAMPLE_USER_2_EMAIL }}" >> .env
+          echo "EXAMPLE_USER_2_PASSWORD=${{ secrets.EXAMPLE_USER_2_PASSWORD }}" >> .env
+          echo "EXAMPLE_USER_2_USERNAME=${{ secrets.EXAMPLE_USER_2_USERNAME }}" >> .env
 
       - name: Build Docker images
         run: docker compose -f "docker-compose.test.yml" build
