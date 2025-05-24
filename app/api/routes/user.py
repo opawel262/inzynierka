@@ -266,7 +266,7 @@ async def reset_user_password(
 @limiter.limit("10/minute")
 async def get_user_by_access_token(
     request: Request,
-    user_id: Annotated[int, Depends(authenticate)],
+    user_id: Annotated[str, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.UserRetrieve:
     return services.get_user_by_id(id=user_id, db=db)
@@ -276,7 +276,7 @@ async def get_user_by_access_token(
 @limiter.limit("60/minute")
 async def update_partial_user_by_access_token(
     request: Request,
-    user_id: Annotated[int, Depends(authenticate)],
+    user_id: Annotated[str, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[Union[schemas.UserUpdate, str], Form(...)] = None,
     avatar_image: Union[Annotated[UploadFile, File(...)]] = None,
@@ -342,7 +342,7 @@ async def update_partial_user_by_access_token(
 async def delete_user_by_access_token(
     request: Request,
     password_user: schemas.PasswordUser,
-    user_id: Annotated[int, Depends(authenticate)],
+    user_id: Annotated[str, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
 ) -> ResponseDetailSchema:
     user = services.get_user_by_id(user_id, db)
@@ -362,7 +362,7 @@ async def delete_user_by_access_token(
 @limiter.limit("50/minute")
 async def reset_user_avatar_to_default(
     request: Request,
-    user_id: Annotated[int, Depends(authenticate)],
+    user_id: Annotated[str, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.AvatarImageUser:
     db_user = services.get_user_by_id(user_id, db)
@@ -385,7 +385,7 @@ async def reset_user_avatar_to_default(
 async def reset_password_user_by_access_token(
     request: Request,
     reset_password: schemas.ResetPasswordUser,
-    user_id: Annotated[int, Depends(authenticate)],
+    user_id: Annotated[str, Depends(authenticate)],
     db: Annotated[Session, Depends(get_db)],
 ) -> ResponseDetailSchema:
     db_user = services.get_user_by_id(user_id, db)

@@ -63,6 +63,11 @@ def get_token_payload(token: str) -> Union[dict]:
         )
 
     except jwt.PyJWTError as error:
+        if str(error) == "Not enough segments":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Nie jesteś zalogowany",
+            )
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error))
 

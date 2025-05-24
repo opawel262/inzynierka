@@ -5,7 +5,10 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr
 from app.core.config import settings
 
-
+class UserPublic(BaseModel):
+    id: UUID
+    username: str
+    
 class Email(BaseModel):
     email: str
 

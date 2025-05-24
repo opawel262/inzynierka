@@ -10,6 +10,7 @@ from app.domain.model_base import Base
 from app.admin import create_admin
 from app.core.utils import limiter
 from app.core.handlers import custom_rate_limit_handler
+from fastapi_pagination.utils import disable_installed_extensions_check
 
 
 def create_db() -> None:
@@ -21,6 +22,7 @@ def create_db() -> None:
 
 
 def get_configured_server_app() -> FastAPI:
+    disable_installed_extensions_check()
     app = FastAPI(swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"})
 
     app.state.limiter = limiter
