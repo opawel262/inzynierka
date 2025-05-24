@@ -30,7 +30,7 @@ jobs:
           echo "FRONTED_URL=${{ secrets.FRONTED_URL }}" >> .env
           echo "EXAMPLE_USER_EMAIL=${{ secrets.EXAMPLE_USER_EMAIL }}" >> .env
           echo "EXAMPLE_USER_PASSWORD=${{ secrets.EXAMPLE_USER_PASSWORD }}" >> .env
-          echo "EXAMPLE_USERNAME=${{ secrets.EXAMPLE_USERNAME }}" >> .env
+          echo "EXAMPLE_USER_USERNAME=${{ secrets.EXAMPLE_USER_USERNAME }}" >> .env
           echo "EXAMPLE_USER_2_EMAIL=${{ secrets.EXAMPLE_USER_2_EMAIL }}" >> .env
           echo "EXAMPLE_USER_2_PASSWORD=${{ secrets.EXAMPLE_USER_2_PASSWORD }}" >> .env
           echo "EXAMPLE_USER_2_USERNAME=${{ secrets.EXAMPLE_USER_2_USERNAME }}" >> .env
