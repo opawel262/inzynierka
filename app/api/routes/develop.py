@@ -6,7 +6,11 @@ from app.domain.model_base import Base
 from app.core.database import engine
 from app.api.deps import get_db
 from app.core.utils import limiter
-
+from app.core.security import get_password_hash
+from app.core.config import settings
+from app.domain.user.models import User
+from app.domain.budget.models import Category
+from app.domain.budget.utils import categories
 router = APIRouter(
     prefix="/develop",
     tags=["Development Utilities"],
@@ -64,3 +68,37 @@ def drop_all_tables(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR500, detail=str(e)
         )
+
+@router.post("/create-example-data")
+def create_example_data(request: Request, db: Session = Depends(get_db)):
+    if db.query(User).count() > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Example data already exists. Clear the database first.",
+        )
+    user1 = User(
+        email=settings.EXAMPLE_USER_EMAIL,
+        username=settings.EXAMPLE_USER_USERNAME,
+        password=get_password_hash(settings.EXAMPLE_USER_PASSWORD),
+        is_active=True,
+    )
+    user2 = User(
+        email=settings.EXAMPLE_USER_2_EMAIL,
+        username=settings.EXAMPLE_USER_2_USERNAME,
+        password=get_password_hash(settings.EXAMPLE_USER_2_PASSWORD),
+        is_active=True,
+    )
+    db.add(user1)
+    db.add(user2)
+    
+    for category in categories:
+        category = Category(
+            name=category.get("name"),
+            icon=category.get("icon"),
+        )
+        db.add(category)
+        
+    db.commit()
+    
+    return {"message": "Example data created successfully"}
+

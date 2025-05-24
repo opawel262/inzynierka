@@ -49,6 +49,15 @@ class Settings(BaseSettings):
 
     EMAIL_EMAIL: EmailStr
     EMAIL_PASSWORD: str
+    
+    # example user data 1
+    EXAMPLE_USER_EMAIL: str
+    EXAMPLE_USER_USERNAME:str 
+    EXAMPLE_USER_PASSWORD: str
+    # example user data 2
+    EXAMPLE_USER_2_EMAIL: str
+    EXAMPLE_USER_2_USERNAME: str
+    EXAMPLE_USER_2_PASSWORD: str
 
 
 settings = Settings()
