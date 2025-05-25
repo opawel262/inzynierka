@@ -12,6 +12,8 @@ class BudgetSchema(BaseModel):
     updated_at: datetime
     is_public: bool
     owner: UserPublic
+    description: Optional[str] = None
+    color: str
 
 
 class BudgetDetailSchema(BudgetSchema):
@@ -21,6 +23,8 @@ class BudgetDetailSchema(BudgetSchema):
 class BudgetCreateSchema(BaseModel):
     title: str
     is_public: bool = False
+    description: Optional[str] = None
+    color: str
 
 
 class BudgetUpdateSchema(BudgetCreateSchema):
