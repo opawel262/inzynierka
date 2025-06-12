@@ -8,6 +8,10 @@ from app.domain.budget.schemas import (
     BudgetCreateSchema,
     BudgetSchema,
     BudgetUpdateSchema,
+    BudgetTransactionCreateSchema,
+    BudgetTransactionUpdateSchema,
+    BudgetTransactionDetailSchema,
+    BudgetTransactionCategoryDetailSchema,
 )
 from app.domain.budget.models import Budget
 from app.domain.budget.services import (
@@ -15,6 +19,12 @@ from app.domain.budget.services import (
     create_budget_service,
     update_budget_service,
     delete_budget_service,
+    get_budget_transactions_service,
+    create_budget_transaction_service,
+    update_budget_transaction_service,
+    get_budget_categories_service,
+    get_budget_transaction_service,
+    delete_budget_transaction_service,
 )
 from typing import Annotated
 
@@ -22,6 +32,23 @@ router = APIRouter(
     prefix="/budgets",
     tags=["Budget Management"],
 )
+
+
+@router.get("/categories")
+async def get_budget_categories(
+    request: Request,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> Page[BudgetTransactionCategoryDetailSchema]:
+    """
+    Get all budget transaction categories.
+    """
+    categories = await get_budget_categories_service(db=db)
+
+    if not categories:
+        raise HTTPException(status_code=404, detail="Nie znaleziono kategorii budżetu")
+
+    return paginate(categories)
 
 
 @router.get("")
@@ -106,4 +133,112 @@ async def delete_budget(
     if not success:
         raise HTTPException(
             status_code=404, detail="Budżet nie znaleziony lub brak dostępu"
+        )
+
+
+@router.get("/budgets/{budget_id}/transactions")
+async def get_budget_transactions(
+    request: Request,
+    budget_id: str,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> Page[BudgetTransactionDetailSchema]:
+    """
+    Get all transactions for a specific budget.
+    """
+    transactions = await get_budget_transactions_service(
+        budget_id=budget_id, user_id=user_id, db=db
+    )
+    return paginate(transactions)
+
+
+@router.get("/budgets/{budget_id}/transactions/{transaction_id}")
+async def get_budget_transaction(
+    request: Request,
+    budget_id: str,
+    transaction_id: str,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> BudgetTransactionDetailSchema:
+    """
+    Get a specific transaction for a budget.
+    """
+    transaction = await get_budget_transaction_service(
+        transaction_id=transaction_id, budget_id=budget_id, user_id=user_id, db=db
+    )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=404, detail="Transakcja nie znaleziona lub brak dostępu"
+        )
+
+    return transaction
+
+
+@router.post("/budgets/{budget_id}/transactions")
+async def create_budget_transaction(
+    request: Request,
+    budget_transaction: BudgetTransactionCreateSchema,
+    budget_id: str,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> BudgetTransactionDetailSchema:
+    """
+    Create a new transaction for a specific budget.
+    """
+    transaction = await create_budget_transaction_service(
+        budget_transaction=budget_transaction,
+        budget_id=budget_id,
+        user_id=user_id,
+        db=db,
+    )
+    return transaction
+
+
+@router.patch("/budgets/{budget_id}/transactions/{transaction_id}")
+async def update_budget_transaction(
+    request: Request,
+    budget_id: str,
+    transaction_id: str,
+    budget_transaction_update: BudgetTransactionUpdateSchema,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> BudgetTransactionDetailSchema:
+    """
+    Update a specific budget transaction.
+    """
+    updated_transaction = await update_budget_transaction_service(
+        budget_id=budget_id,
+        transaction_id=transaction_id,
+        user_id=user_id,
+        budget_transaction_update=budget_transaction_update,
+        db=db,
+    )
+
+    if not updated_transaction:
+        raise HTTPException(
+            status_code=404, detail="Transakcja nie znaleziona lub brak dostępu"
+        )
+
+    return updated_transaction
+
+
+@router.delete("/budgets/{budget_id}/transactions/{transaction_id}", status_code=204)
+async def delete_budget_transaction(
+    request: Request,
+    budget_id: str,
+    transaction_id: str,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a specific budget transaction.
+    """
+    success = await delete_budget_transaction_service(
+        budget_id=budget_id, transaction_id=transaction_id, user_id=user_id, db=db
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=404, detail="Transakcja nie znaleziona lub brak dostępu"
         )

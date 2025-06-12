@@ -28,6 +28,15 @@ class Budget(Base):
     owner = relationship("User", back_populates="budgets")
     transactions = relationship("BudgetTransaction", back_populates="budget")
 
+    @property
+    def total_amount(self) -> float:
+        if len(self.transactions) == 0:
+            return 0.0
+        
+        return sum(
+            t.amount if t.transaction_type == "przychód" else -t.amount
+            for t in self.transactions
+        )
 
 class BudgetTransaction(Base):
     __tablename__ = "budget_transactions"

@@ -24,6 +24,7 @@
 
   - [ ] GET /api/budgets/{budget_id}/summary — podsumowanie pewnie jakies info jak do raportu tylko mniej szczegolowe nwm
 
+  - [x] GET /api/budgets/{budget_id}/categories — wyświetl wszystkie kategorie w budżecie
   - [ ] GET /api/budgets/{budget_id}/report/pdf — jakis koks raporcik
   - [ ] GET /api/budgets/{budget_id}/export/csv — eksportuj dane do CSV
   - [ ] GET /api/budgets/{budget_id}/export/excel — eksportuj dane do Excela (XLSX)
