@@ -17,7 +17,7 @@ class BudgetTransactionCategoryDetailSchema(BudgetTransactionCategorySchema):
 
 class BudgetTransactionSchema(BaseModel):
     title: str
-    transaction_type: Literal["dochód", "przychód"]
+    transaction_type: Literal["+", "-"]
     amount: float
     description: Optional[str] = None
     category_id: Optional[int] = None
@@ -29,7 +29,7 @@ class BudgetTransactionCreateSchema(BudgetTransactionSchema):
 
 class BudgetTransactionUpdateSchema(BudgetTransactionSchema):
     title: Optional[str] = None
-    transaction_type: Optional[Literal["dochód", "przychód"]] = None
+    transaction_type: Optional[Literal["+", "-"]] = None
     amount: Optional[float] = None
     category_id: Optional[int] = None
 

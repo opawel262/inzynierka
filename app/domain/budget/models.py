@@ -32,11 +32,12 @@ class Budget(Base):
     def total_amount(self) -> float:
         if len(self.transactions) == 0:
             return 0.0
-        
+
         return sum(
-            t.amount if t.transaction_type == "przychód" else -t.amount
+            -t.amount if t.transaction_type == "-" else t.amount
             for t in self.transactions
         )
+
 
 class BudgetTransaction(Base):
     __tablename__ = "budget_transactions"
@@ -45,7 +46,7 @@ class BudgetTransaction(Base):
     budget_id = Column(
         UUID(as_uuid=True), ForeignKey("budgets.id", ondelete="CASCADE"), nullable=False
     )
-    transaction_type = Column(String(10), nullable=False)  # "dochod" or "przychod"
+    transaction_type = Column(String(10), nullable=False)
     amount = Column(Float, nullable=False)
     description = Column(String(255), nullable=True)
     category_id = Column(
