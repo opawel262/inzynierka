@@ -39,9 +39,15 @@ class Asset(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
     symbol = Column(String, nullable=False)  # Symbol for stock or crypto (e.g., CDR.WA, BTC)
+    name = Column(String, nullable=False)  # Full name of the asset
+    
     icon = Column(String, nullable=True)  # Optiunalll
     asset_type = Column(String, nullable=False)  # "stock" or "crypto"
-
+    date_updated = Column(DateTime, default=datetime.utcnow)
+    market_cap = Column(Integer, nullable=True)  
+    price_change_percentage_1h = Column(Float, nullable=True)
+    price_change_percentage_24h = Column(Float, nullable=True)  
+    price_change_percentage_7d = Column(Float, nullable=True)  
     transactions = relationship("PortfolioTransaction", back_populates="asset")
     historical_prices = relationship("AssetHistoricalPrice", back_populates="asset")
 
