@@ -35,7 +35,7 @@ router = APIRouter(
 
 
 @router.get("/categories")
-async def get_budget_categories(
+async def get_budget_transaction_categories(
     request: Request,
     user_id: Annotated[str, Depends(authenticate)],
     db: Session = Depends(get_db),
