@@ -136,7 +136,7 @@ async def delete_budget(
         )
 
 
-@router.get("/budgets/{budget_id}/transactions")
+@router.get("/{budget_id}/transactions")
 async def get_budget_transactions(
     request: Request,
     budget_id: str,
@@ -152,7 +152,7 @@ async def get_budget_transactions(
     return paginate(transactions)
 
 
-@router.get("/budgets/{budget_id}/transactions/{transaction_id}")
+@router.get("/{budget_id}/transactions/{transaction_id}")
 async def get_budget_transaction(
     request: Request,
     budget_id: str,
@@ -175,7 +175,7 @@ async def get_budget_transaction(
     return transaction
 
 
-@router.post("/budgets/{budget_id}/transactions")
+@router.post("/{budget_id}/transactions")
 async def create_budget_transaction(
     request: Request,
     budget_transaction: BudgetTransactionCreateSchema,
@@ -195,7 +195,7 @@ async def create_budget_transaction(
     return transaction
 
 
-@router.patch("/budgets/{budget_id}/transactions/{transaction_id}")
+@router.patch("/{budget_id}/transactions/{transaction_id}")
 async def update_budget_transaction(
     request: Request,
     budget_id: str,
@@ -223,7 +223,7 @@ async def update_budget_transaction(
     return updated_transaction
 
 
-@router.delete("/budgets/{budget_id}/transactions/{transaction_id}", status_code=204)
+@router.delete("/{budget_id}/transactions/{transaction_id}", status_code=204)
 async def delete_budget_transaction(
     request: Request,
     budget_id: str,
