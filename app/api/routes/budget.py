@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status, Query
 from fastapi_pagination import Page, paginate
 
 from sqlalchemy.orm import Session
@@ -15,7 +15,8 @@ from app.domain.budget.schemas import (
 )
 from app.domain.budget.models import Budget
 from app.domain.budget.services import (
-    get_budget_by_id,
+    get_budget_by_budget_user_ids,
+    get_budgets_by_user_id,
     create_budget_service,
     update_budget_service,
     delete_budget_service,
@@ -26,7 +27,7 @@ from app.domain.budget.services import (
     get_budget_transaction_service,
     delete_budget_transaction_service,
 )
-from typing import Annotated
+from typing import Annotated, Optional, Literal
 
 router = APIRouter(
     prefix="/budgets",
@@ -54,12 +55,24 @@ async def get_budget_transaction_categories(
 @router.get("")
 @limiter.limit("50/minute")
 async def get_all_budgets(
-    request: Request, db: Session = Depends(get_db), user_id=Depends(authenticate)
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id=Depends(authenticate),
+    sort_order: Literal["asc", "desc"] = Query(
+        default="desc",
+        description="Sorting order: 'asc' for ascending, 'desc for descending.",
+    ),
+    sort_by: Literal["created_at", "updated_at"] = Query(
+        default="created_at",
+        description="Field to sort transactions by: 'created_at' or 'updated_at'.",
+    ),
 ) -> Page[BudgetSchema]:
     """
     Retrieve all budgets for the authenticated user.
     """
-    budgets = db.query(Budget).filter(Budget.owner_id == user_id).all()
+    budgets = await get_budgets_by_user_id(
+        user_id=user_id, db=db, sort_order=sort_order, sort_by=sort_by
+    )
     return paginate(budgets)
 
 
@@ -90,7 +103,9 @@ async def get_budget(
     """
     Get a single budget by ID.
     """
-    budget = await get_budget_by_id(budget_id=budget_id, user_id=user_id, db=db)
+    budget = await get_budget_by_budget_user_ids(
+        budget_id=budget_id, user_id=user_id, db=db
+    )
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found")
     return budget
@@ -142,12 +157,45 @@ async def get_budget_transactions(
     budget_id: str,
     user_id: Annotated[str, Depends(authenticate)],
     db: Session = Depends(get_db),
+    value: Optional[str] = Query(
+        default=None,
+        description="Search term to match transaction title.",
+    ),
+    min_amount: Optional[float] = Query(
+        default=None, description="Minimum transaction amount for filtering."
+    ),
+    max_amount: Optional[float] = Query(
+        default=None, description="Maximum transaction amount for filtering."
+    ),
+    sort_order: Literal["asc", "desc"] = Query(
+        default="desc",
+        description="Sorting order: 'asc' for ascending, 'desc' for descending.",
+    ),
+    sort_by: Literal["created_at", "updated_at"] = Query(
+        default="created_at",
+        description="Field to sort transactions by: 'created_at' or 'updated_at'.",
+    ),
+    by_category_id: Optional[int] = Query(
+        default=None, description="Filter transactions by specific category ID."
+    ),
+    transaction_type: Optional[Literal["-", "+"]] = Query(
+        default=None, description="Filter by transaction type ('-', '+')."
+    ),
 ) -> Page[BudgetTransactionDetailSchema]:
     """
     Get all transactions for a specific budget.
     """
     transactions = await get_budget_transactions_service(
-        budget_id=budget_id, user_id=user_id, db=db
+        budget_id=budget_id,
+        user_id=user_id,
+        db=db,
+        value=value,
+        min_amount=min_amount,
+        max_amount=max_amount,
+        sort_order=sort_order,
+        sort_by=sort_by,
+        by_category_id=by_category_id,
+        transaction_type=transaction_type,
     )
     return paginate(transactions)
 

@@ -1,8 +1,11 @@
 from sqlalchemy.orm import Session
 from . import schemas, models
+from typing import Optional, Literal
 
 
-async def get_budget_by_id(budget_id: str, user_id: str, db: Session) -> models.Budget:
+async def get_budget_by_budget_user_ids(
+    budget_id: str, user_id: str, db: Session
+) -> models.Budget:
     return (
         db.query(models.Budget)
         .filter(models.Budget.id == budget_id, models.Budget.owner_id == user_id)
@@ -10,8 +13,22 @@ async def get_budget_by_id(budget_id: str, user_id: str, db: Session) -> models.
     )
 
 
-async def get_budgets_by_user_id(user_id: str, db: Session) -> list[models.Budget]:
-    return db.query(models.Budget).filter(models.Budget.owner_id == user_id).all()
+async def get_budgets_by_user_id(
+    user_id: str,
+    db: Session,
+    sort_order: Literal["asc", "desc"] = "desc",
+    sort_by: Literal["created_at", "updated_at"] = "updated_at",
+) -> list[models.Budget]:
+    query = db.query(models.Budget).filter(models.Budget.owner_id == user_id)
+
+    sort_column = getattr(models.Budget, sort_by)
+
+    if sort_order == "asc":
+        sort_column = sort_column.asc()
+    else:
+        sort_column = sort_column.desc()
+
+    return query.order_by(sort_column).all()
 
 
 async def create_budget_service(
@@ -68,19 +85,51 @@ async def delete_budget_service(budget_id: str, user_id: str, db: Session) -> bo
 
 
 async def get_budget_transactions_service(
-    budget_id: str, user_id: str, db: Session
+    budget_id: str,
+    user_id: str,
+    db: Session,
+    value: Optional[str] = None,
+    min_amount: Optional[float] = None,
+    max_amount: Optional[float] = None,
+    sort_order: Literal["asc", "desc"] = "desc",
+    sort_by: Literal["created_at", "updated_at"] = "created_at",
+    by_category_id: Optional[int] = None,
+    transaction_type: Optional[str] = None,
 ) -> list[models.BudgetTransaction]:
     """
-    Retrieve all transactions for a specific budget.
+    Retrieve filtered and sorted transactions for a specific budget.
     """
-    return (
-        db.query(models.BudgetTransaction)
-        .filter(
-            models.BudgetTransaction.budget_id == budget_id,
-            models.BudgetTransaction.budget.has(owner_id=user_id),
-        )
-        .all()
+    query = db.query(models.BudgetTransaction).filter(
+        models.BudgetTransaction.budget_id == budget_id,
+        models.BudgetTransaction.budget.has(owner_id=user_id),
     )
+
+    if value:
+        query = query.filter(models.BudgetTransaction.title.ilike(f"%{value}%"))
+
+    if min_amount is not None:
+        query = query.filter(models.BudgetTransaction.amount >= min_amount)
+
+    if max_amount is not None:
+        query = query.filter(models.BudgetTransaction.amount <= max_amount)
+
+    if by_category_id is not None:
+        query = query.filter(models.BudgetTransaction.category_id == by_category_id)
+
+    if transaction_type is not None:
+        query = query.filter(
+            models.BudgetTransaction.transaction_type == transaction_type
+        )
+
+    sort_column = getattr(models.BudgetTransaction, sort_by)
+    if sort_order == "desc":
+        sort_column = sort_column.desc()
+    else:
+        sort_column = sort_column.asc()
+
+    query = query.order_by(sort_column)
+
+    return query.all()
 
 
 async def get_budget_transaction_service(
@@ -120,7 +169,7 @@ async def create_budget_transaction_service(
         **budget_transaction.model_dump(), budget_id=budget_id
     )
 
-    budget = await get_budget_by_id(budget_id, user_id, db)
+    budget = await get_budget_by_budget_user_ids(budget_id, user_id, db)
 
     if not budget:
         print("wykonalo sioe nima mbudgeta")

@@ -20,6 +20,7 @@ class BudgetTransactionSchema(BaseModel):
     transaction_type: Literal["+", "-"]
     amount: float
     description: Optional[str] = None
+    category_id: Optional[int] = None
 
 
 class BudgetTransactionCreateSchema(BudgetTransactionSchema):
@@ -64,5 +65,8 @@ class BudgetCreateSchema(BaseModel):
     color: str
 
 
-class BudgetUpdateSchema(BudgetCreateSchema):
-    pass
+class BudgetUpdateSchema(BaseModel):
+    title: Optional[str] = None
+    is_public: Optional[bool] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
