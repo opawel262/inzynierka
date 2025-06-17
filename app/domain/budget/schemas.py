@@ -20,7 +20,6 @@ class BudgetTransactionSchema(BaseModel):
     transaction_type: Literal["+", "-"]
     amount: float
     description: Optional[str] = None
-    category_id: Optional[int] = None
 
 
 class BudgetTransactionCreateSchema(BudgetTransactionSchema):
