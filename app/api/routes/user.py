@@ -321,7 +321,6 @@ async def update_partial_user_by_access_token(
 
             db_user.avatar_image = avatar_image_url
 
-
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -390,7 +389,6 @@ async def reset_password_user_by_access_token(
     db: Annotated[Session, Depends(get_db)],
 ) -> ResponseDetailSchema:
     db_user = services.get_user_by_id(user_id, db)
-    print(get_password_hash(reset_password.password))
     print(db_user.password)
     if not verify_password(reset_password.password, db_user.password):
         raise HTTPException(
@@ -398,8 +396,8 @@ async def reset_password_user_by_access_token(
             detail="Nieprawidłowe hasło",
         )
     db_user.password = get_password_hash(reset_password.new_password)
-    print(db_user.password)
-    db.refresh(db_user)
+    db.add(db_user)
     db.commit()
+    db.refresh(db_user)
 
     return {"detail": "Hasło zostało pomyślnie zmienione"}

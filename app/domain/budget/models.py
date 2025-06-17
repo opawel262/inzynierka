@@ -26,7 +26,9 @@ class Budget(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     owner = relationship("User", back_populates="budgets")
-    transactions = relationship("BudgetTransaction", back_populates="budget")
+    transactions = relationship(
+        "BudgetTransaction", back_populates="budget", cascade="all, delete-orphan"
+    )
 
     @property
     def total_amount(self) -> float:
