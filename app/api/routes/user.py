@@ -321,9 +321,10 @@ async def update_partial_user_by_access_token(
 
             db_user.avatar_image = avatar_image_url
 
-            db.add(db_user)
-            db.commit()
-            db.refresh(db_user)
+
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
 
         return db_user
 
