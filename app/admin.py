@@ -11,6 +11,14 @@ from app.domain.budget.views import (
     BudgetTransactionAdminView,
     CategoryAdminView,
 )
+from app.domain.portfolio.views import (
+    StockAdminView,
+    CryptoAdminView,
+    StockTransactionAdminView,
+    CryptoTransactionAdminView,
+    StockPortfolioAdminView,
+    CryptoPortfolioAdminView,
+)
 
 
 class AdminAuth(AuthenticationBackend):
@@ -47,3 +55,9 @@ def create_admin(app: FastAPI, engine: Engine) -> None:
     admin.add_view(BudgetAdminView)
     admin.add_view(BudgetTransactionAdminView)
     admin.add_view(CategoryAdminView)
+    admin.add_view(StockAdminView)
+    admin.add_view(CryptoAdminView)
+    admin.add_view(StockTransactionAdminView)
+    admin.add_view(CryptoTransactionAdminView)
+    admin.add_view(StockPortfolioAdminView)
+    admin.add_view(CryptoPortfolioAdminView)
