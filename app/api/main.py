@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.routes import user, auth, develop, budget
+from app.api.routes import user, auth, develop, budget, portfolio
 from app.core.config import settings
 
 router = APIRouter()
@@ -11,6 +11,7 @@ def include_api_routes():
     router.include_router(user.router, prefix=settings.API_V1_STR)
     router.include_router(develop.router, prefix=settings.API_V1_STR)
     router.include_router(budget.router, prefix=settings.API_V1_STR)
+    router.include_router(portfolio.router, prefix=settings.API_V1_STR)
 
 
 include_api_routes()

@@ -3,7 +3,7 @@ import time
 from typing import Dict, List
 
 
-class CurrencyRateFetcher:
+class ExchangerateCurrencyRateFetcher:
     BASE_URL = "https://api.exchangerate.host/latest"
 
     def __init__(self, base_currency: str = "PLN", symbols: List[str] = None):

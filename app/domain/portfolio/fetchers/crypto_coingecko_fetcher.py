@@ -1,7 +1,7 @@
 import requests
 import json
 
-class CryptoFetcher:
+class CoinGeckoCryptoFetcher:
     def __init__(self, currency: str = "usd"):
         
         self.url = "https://api.coingecko.com/api/v3/coins/markets"
