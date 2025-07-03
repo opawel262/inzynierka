@@ -24,9 +24,8 @@ class User(Base):
     budgets = relationship(
         "Budget", back_populates="owner", cascade="all, delete-orphan"
     )
-    portfolios = relationship(
-        "Portfolio", back_populates="owner", cascade="all, delete-orphan"
-    )
+    stock_portfolios = relationship("StockPortfolio", back_populates="owner")
+    crypto_portfolios = relationship("CryptoPortfolio", back_populates="owner")
 
 
 class Token(Base):
