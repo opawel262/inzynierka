@@ -26,6 +26,22 @@ class GPWStockFetcher:
     ):
         self.tickers = [ticker + ".WA" for ticker in tickers]
         self.timezone = timezone
+        self._data_history: Dict[str, Any] = None
+
+    def historical_data_from_last_fetch(self) -> dict:
+        """
+        Returns historical stock data as a `dict` object.
+
+        The historical data is internally populated by the `fetch_stock_data_by_ticker`
+        method, which must be called beforehand. If this method has not been called,
+        the returned data may be outdated or empty.
+
+        """
+        if self._data_history is None or not self._data_history:
+            raise ValueError(
+                "Historical data is not available. Please call `fetch_stock_data_by_ticker` first."
+            )
+        return self._data_history
 
     def fetch_stock_data_by_ticker(self, ticker: str) -> Dict[str, Any]:
 
@@ -34,77 +50,93 @@ class GPWStockFetcher:
             info = spolka.info
             now = datetime.now(self.timezone)
 
-            hist_for_day = spolka.history(period="1d", interval="5m")
+            hist_for_day = spolka.history(period="1d", interval="1h")
             one_hour_ago = now - timedelta(hours=1)
             price_1h_ago = self._get_close_near_time(hist_for_day, one_hour_ago)
+            hist_for_day = [
+                {
+                    "date": row.name,
+                    "open_price": round(float(row["Open"]), 2),
+                    "close_price": round(float(row["Close"]), 2),
+                    "high_price": round(float(row["High"]), 2),
+                    "low_price": round(float(row["Low"]), 2),
+                    "volume": int(row["Volume"]),
+                    "interval": "1h",
+                    "period": "1d",
+                }
+                for _, row in hist_for_day.iterrows()
+            ]
 
-            hist_for_day = {
-                "open_price": hist_for_day["Open"].iloc[0],
-                "close_price": hist_for_day["Close"].iloc[0],
-                "high_price": hist_for_day["High"].iloc[0],
-                "low_price": hist_for_day["Low"].iloc[0],
-                "volume": hist_for_day["Volume"].iloc[0],
-                "interval": "5m",
-                "period": "1d",
-            }
-
-            hist_for_7_days = spolka.history(period="7d", interval="30m")
+            hist_for_7_days = spolka.history(period="7d", interval="4h")
 
             one_day_ago = now - timedelta(days=1)
             price_24h_ago = self._get_close_near_time(hist_for_7_days, one_day_ago)
+            hist_for_7_days = [
+                {
+                    "date": row.name,  # index to Datetime
+                    "open_price": round(float(row["Open"]), 2),
+                    "close_price": round(float(row["Close"]), 2),
+                    "high_price": round(float(row["High"]), 2),
+                    "low_price": round(float(row["Low"]), 2),
+                    "volume": int(row["Volume"]),
+                    "interval": "4h",
+                    "period": "7d",
+                }
+                for _, row in hist_for_7_days.iterrows()
+            ]
 
-            hist_for_7_days = {
-                "open_price": hist_for_7_days["Open"].iloc[0],
-                "close_price": hist_for_7_days["Close"].iloc[0],
-                "high_price": hist_for_7_days["High"].iloc[0],
-                "low_price": hist_for_7_days["Low"].iloc[0],
-                "volume": hist_for_7_days["Volume"].iloc[0],
-                "interval": "30m",
-                "period": "7d",
-            }
-
-            hist_for_month = spolka.history(period="1mo", interval="4h")
-
+            hist_for_month = spolka.history(period="1mo", interval="1d")
             seven_days_ago = now - timedelta(days=7)
             price_7d_ago = self._get_close_near_time(hist_for_month, seven_days_ago)
+            hist_for_month = [
+                {
+                    "date": row.name,  # index to Datetime
+                    "open_price": round(float(row["Open"]), 2),
+                    "close_price": round(float(row["Close"]), 2),
+                    "high_price": round(float(row["High"]), 2),
+                    "low_price": round(float(row["Low"]), 2),
+                    "volume": int(row["Volume"]),
+                    "interval": "1d",
+                    "period": "1mo",
+                }
+                for _, row in hist_for_month.iterrows()
+            ]
 
-            hist_for_month = {
-                "open_price": hist_for_month["Open"].iloc[0],
-                "close_price": hist_for_month["Close"].iloc[0],
-                "high_price": hist_for_month["High"].iloc[0],
-                "low_price": hist_for_month["Low"].iloc[0],
-                "volume": hist_for_month["Volume"].iloc[0],
-                "interval": "4h",
-                "period": "1mo",
-            }
+            hist_for_year = spolka.history(period="1y", interval="1wk")
+            hist_for_year = [
+                {
+                    "date": row.name,  # index to Datetime
+                    "open_price": round(float(row["Open"]), 2),
+                    "close_price": round(float(row["Close"]), 2),
+                    "high_price": round(float(row["High"]), 2),
+                    "low_price": round(float(row["Low"]), 2),
+                    "volume": int(row["Volume"]),
+                    "interval": "1wk",
+                    "period": "1y",
+                }
+                for _, row in hist_for_year.iterrows()
+            ]
 
-            hist_for_year = spolka.history(period="1y", interval="1d")
-            hist_for_year = {
-                "open_price": hist_for_year["Open"].iloc[0],
-                "close_price": hist_for_year["Close"].iloc[0],
-                "high_price": hist_for_year["High"].iloc[0],
-                "low_price": hist_for_year["Low"].iloc[0],
-                "volume": hist_for_year["Volume"].iloc[0],
-                "interval": "1d",
-                "period": "1y",
-            }
+            hist_for_max = spolka.history(period="max", interval="1mo")
+            hist_for_max = [
+                {
+                    "date": row.name,  # index to Datetime
+                    "open_price": round(float(row["Open"]), 2),
+                    "close_price": round(float(row["Close"]), 2),
+                    "high_price": round(float(row["High"]), 2),
+                    "low_price": round(float(row["Low"]), 2),
+                    "volume": int(row["Volume"]),
+                    "interval": "1mo",
+                    "period": "max",
+                }
+                for _, row in hist_for_max.iterrows()
+            ]
 
-            hist_for_max = spolka.history(period="max", interval="1wk")
-            hist_for_max = {
-                "open_price": hist_for_max["Open"].iloc[0],
-                "close_price": hist_for_max["Close"].iloc[0],
-                "high_price": hist_for_max["High"].iloc[0],
-                "low_price": hist_for_max["Low"].iloc[0],
-                "volume": hist_for_max["Volume"].iloc[0],
-                "interval": "1wk",
-                "period": "max",
-            }
-
-            current_price = info.get("currentPrice") or info.get("regularMarketPrice")
+            price = info.get("currentPrice") or info.get("regularMarketPrice")
             symbol = info.get("symbol")
             name = info.get("shortName")
             sector = info.get("sector")
-            volume = info.get("volume") or info.get("regularMarketVolume")
+            volume_24h = info.get("volume") or info.get("regularMarketVolume")
             market_cap = info.get("marketCap")
             market_state = info.get("marketState")
             description = info.get("longBusinessSummary")
@@ -121,29 +153,24 @@ class GPWStockFetcher:
             average_volume_10d = (info.get("averageVolume10days"),)
             employees = (info.get("fullTimeEmployees"),)
 
-            price_change_percentage_1h = self._calculate_change(
-                current_price, price_1h_ago
+            price_change_percentage_1h = self._calculate_change(price, price_1h_ago)
+            price_change_percentage_24h = self._calculate_change(price, price_24h_ago)
+            price_change_percentage_7d = self._calculate_change(price, price_7d_ago)
+            self._data_history = (
+                hist_for_day
+                + hist_for_7_days
+                + hist_for_month
+                + hist_for_year
+                + hist_for_max
             )
-            price_change_percentage_24h = self._calculate_change(
-                current_price, price_24h_ago
-            )
-            price_change_percentage_7d = self._calculate_change(
-                current_price, price_7d_ago
-            )
-            self.data_history = {
-                "1d": hist_for_day,
-                "7d": hist_for_7_days,
-                "1mo": hist_for_month,
-                "1y": hist_for_year,
-                "max": hist_for_max,
-            }
+
             return {
                 "symbol": symbol,
                 "name": name,
                 "sector": sector,
-                "price": current_price,
+                "price": price,
                 "currency": "PLN",
-                "volume_24h": volume,
+                "volume_24h": volume_24h,
                 "market_cap": market_cap,
                 "market_state": market_state,
                 "description": description,
@@ -196,8 +223,8 @@ class GPWStockFetcher:
             print(f"\nTicker: {item['ticker']}")
             print(f"Nazwa: {item['name']}")
             print(f"Sektor: {item['sector']}")
-            print(f"Aktualna cena: {item['current_price']} PLN")
-            print(f"Wolumen: {item['volume']}")
+            print(f"Aktualna cena: {item['price']} PLN")
+            print(f"Wolumen: {item['volume_24h']}")
             print(f"Kapitalizacja rynkowa: {item['market_cap']} PLN")
             print(
                 f"Cena 1h temu: {item['price_1h_ago']} PLN, zmiana: {item['change_1h']}%"

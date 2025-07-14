@@ -20,13 +20,7 @@ def fetch_and_save_stock(request: Request, db: Session = Depends(get_db)):
     stock_service = GPWStockService(
         fetcher=GPWStockFetcher(), repository=stock_repository
     )
-    gpw_fetcher = GPWStockFetcher()
-    for ticker in gpw_fetcher.tickers:
-        stock_data = gpw_fetcher.fetch_stock_data_by_ticker(ticker)
-        if not stock_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Stock data for ticker {ticker} not found",
-            )
+    gpw_fetcher = GPWStockFetcher(tickers=settings.GPW_TICKERS)
+
     stock_service.fetch_and_save_stock_data()
     return {"message": "Stock data fetched and saved successfully"}

@@ -41,7 +41,11 @@ class BaseAsset(Base):
     name = Column(String, nullable=False)
     price = Column(Float, nullable=False)
     currency = Column(String, nullable=False)
-    date_updated = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(
+        DateTime,
+        server_default=func.timezone("UTC", func.now()),
+        onupdate=func.timezone("UTC", func.now()),
+    )
     market_cap = Column(BigInteger, nullable=True)
     price_change_percentage_1h = Column(Float, nullable=True)
     price_change_percentage_24h = Column(Float, nullable=True)
@@ -51,7 +55,7 @@ class BaseAsset(Base):
 class BaseHistoricalPrice(Base):
     __abstract__ = True
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
+    id = Column(Integer, primary_key=True, index=True)
     date = Column(DateTime, nullable=False)
     open_price = Column(Float, nullable=True)
     close_price = Column(Float, nullable=True)
@@ -168,7 +172,7 @@ class CryptoTransaction(BaseTransaction):
 class StockHistoricalPrice(BaseHistoricalPrice):
     __tablename__ = "stock_historical_prices"
 
-    stock_symbol = Column(
+    stock_id = Column(
         Integer, ForeignKey("stocks.id", ondelete="CASCADE"), nullable=False
     )
     stock = relationship("Stock", back_populates="historical_prices")
@@ -178,7 +182,7 @@ class StockHistoricalPrice(BaseHistoricalPrice):
 class CryptoHistoricalPrice(BaseHistoricalPrice):
     __tablename__ = "crypto_historical_prices"
 
-    crypto_symbol = Column(
+    crypto_id = Column(
         Integer, ForeignKey("cryptos.id", ondelete="CASCADE"), nullable=False
     )
     crypto = relationship("Crypto", back_populates="historical_prices")

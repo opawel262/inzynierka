@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 
 class FetcherHistoricalRecordSchema(BaseModel):
@@ -9,18 +9,17 @@ class FetcherHistoricalRecordSchema(BaseModel):
     close_price: Optional[float] = None
     high_price: Optional[float] = None
     low_price: Optional[float] = None
-    volume: Optional[float] = None
+    volume: Optional[int] = None
     interval: str
     period: str
 
 
 class FetcherHistoricalStockSchema(BaseModel):
-    one_h: Optional[FetcherHistoricalRecordSchema] = Field(None, alias="1h")
-    one_d: Optional[FetcherHistoricalRecordSchema] = Field(None, alias="1d")
-    seven_d: Optional[FetcherHistoricalRecordSchema] = Field(None, alias="7d")
-    one_mo: Optional[FetcherHistoricalRecordSchema] = Field(None, alias="1mo")
-    one_y: Optional[FetcherHistoricalRecordSchema] = Field(None, alias="1y")
-    max_: Optional[FetcherHistoricalRecordSchema] = Field(None, alias="max")
+    one_h: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1h")
+    one_d: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1d")
+    one_mo: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1mo")
+    one_y: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1y")
+    max_: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="max")
 
     class Config:
         populate_by_name = True
@@ -29,11 +28,10 @@ class FetcherHistoricalStockSchema(BaseModel):
 class FetcherStockGPWSchema(BaseModel):
     symbol: Optional[str] = None
     name: Optional[str] = None
+    sector: Optional[str] = None
     price: Optional[float] = None
     currency: Optional[str] = None
-    sector: Optional[str] = None
-    current_price: Optional[float] = None
-    volume: Optional[int] = None
+    volume_24h: Optional[int] = None
     market_cap: Optional[float] = None
     market_state: Optional[str] = None
     description: Optional[str] = None
@@ -49,10 +47,13 @@ class FetcherStockGPWSchema(BaseModel):
     pe_ratio: Optional[float] = None
     average_volume_10d: Optional[float] = None
     employees: Optional[int] = None
-    price_1h_ago: Optional[float] = None
-    price_24h_ago: Optional[float] = None
-    price_7d_ago: Optional[float] = None
-    change_1h: Optional[float] = None
-    change_24h: Optional[float] = None
-    change_7d: Optional[float] = None
-    historical_data: Optional[FetcherHistoricalStockSchema] = None
+    price_change_percentage_1h: Optional[float] = None
+    price_change_percentage_24h: Optional[float] = None
+    price_change_percentage_7d: Optional[float] = None
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def unwrap_single_element_tuple(cls, v):
+        if isinstance(v, tuple) and len(v) == 1:
+            return v[0]
+        return v

@@ -6,6 +6,8 @@ from .models import (
     CryptoTransaction,
     StockPortfolio,
     CryptoPortfolio,
+    StockHistoricalPrice,
+    CryptoHistoricalPrice,
 )
 
 
@@ -30,4 +32,12 @@ class StockPortfolioAdminView(ModelView, model=StockPortfolio):
 
 
 class CryptoPortfolioAdminView(ModelView, model=CryptoPortfolio):
+    column_list = "__all__"
+
+
+class StockHistoricalPriceAdminView(ModelView, model=StockHistoricalPrice):
+    column_list = "__all__"
+
+
+class CryptoHistoricalPriceAdminView(ModelView, model=CryptoHistoricalPrice):
     column_list = "__all__"

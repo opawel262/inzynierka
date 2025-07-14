@@ -40,5 +40,3 @@ class ExchangerateCurrencyRateFetcher:
         for currency, rate in sorted(rates.items()):
             print(f"1 {self.base_currency} = {rate:.4f} {currency}")
         print("-" * 40)
-
-

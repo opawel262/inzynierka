@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from datetime import timedelta
 from pydantic import EmailStr, validator
 from fastapi_mail import ConnectionConfig
+from app.gpw_tickers import GPW_TICKERS
+from typing import List
 
 
 # General settings
@@ -17,6 +19,8 @@ class Settings(BaseSettings):
     JWT_TOKEN_PREFIX: str = "Authorization"
 
     ALGORITHM: str = "HS256"
+
+    GPW_TICKERS: List[str] = GPW_TICKERS
 
     # Rate limiter for email
     RESET_LIMIT_EMAIL_RESET_PASSWORD: int = 3
@@ -49,10 +53,10 @@ class Settings(BaseSettings):
 
     EMAIL_EMAIL: EmailStr
     EMAIL_PASSWORD: str
-    
+
     # example user data 1
     EXAMPLE_USER_EMAIL: str
-    EXAMPLE_USER_USERNAME:str 
+    EXAMPLE_USER_USERNAME: str
     EXAMPLE_USER_PASSWORD: str
     # example user data 2
     EXAMPLE_USER_2_EMAIL: str
