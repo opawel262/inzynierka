@@ -15,17 +15,17 @@ gpw_tickers_part2 = gpw_tickers[split_size : 2 * split_size]
 gpw_tickers_part3 = gpw_tickers[2 * split_size :]
 
 celery_app.conf.beat_schedule = {
-    "fetch-gpw-part1-every-5-minutes": {
+    "fetch-gpw-part1-every-10-minutes": {
         "task": "app.tasks.fetch_gpw_data_by_tickers",
         "schedule": 600.0,
         "args": [gpw_tickers_part1],
     },
-    "fetch-gpw-part2-every-5-minutes": {
+    "fetch-gpw-part2-every-10-minutes": {
         "task": "app.tasks.fetch_gpw_data_by_tickers",
         "schedule": 600.0,
         "args": [gpw_tickers_part2],
     },
-    "fetch-gpw-part3-every-5-minutes": {
+    "fetch-gpw-part3-every-10-minutes": {
         "task": "app.tasks.fetch_gpw_data_by_tickers",
         "schedule": 600.0,
         "args": [gpw_tickers_part3],
