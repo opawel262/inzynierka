@@ -4,9 +4,10 @@ services:
   inzynierka_server:
     build: .
     ports:
-      - "8000:8000" # FastAPI
+      - "8000:8000"
     depends_on:
       - izynierka_db
+      - redis
     volumes:
       - ./app:/code/app
     command: >
@@ -26,12 +27,44 @@ services:
       - ./.env
     ports:
       - "5432:5432"
+
   redis:
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+
+  celery_worker:
+    build: .
+    depends_on:
+      - redis
+      - izynierka_db
+    volumes:
+      - ./app:/code/app
+    command: celery -A app.tasks worker --concurrency=4 --loglevel=info
+
+    env_file:
+      - ./.env
+  celery_beat:
+    build: .
+    depends_on:
+      - redis
+      - izynierka_db
+    command: celery -A app.celery_app beat --loglevel=info
+    volumes:
+      - ./app:/code/app
+    env_file:
+      - ./.env
+  flower:
+    image: mher/flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+
 volumes:
   postgres_data:
   redis_data:
