@@ -13,7 +13,6 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
     limit_count, time_unit = limit_info.split(" ")
 
     # Extract reset time from the headers (usually found in the X-RateLimit-Reset header)
-    print(exc.headers)
 
     return JSONResponse(
         status_code=429,
