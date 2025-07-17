@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
 
     GPW_TICKERS: List[str] = GPW_TICKERS
+    COINGECKO_API_KEY: str
 
     # Rate limiter for email
     RESET_LIMIT_EMAIL_RESET_PASSWORD: int = 3
