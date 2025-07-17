@@ -21,13 +21,13 @@ class GPWStockService:
                     detail=f"Stock data for ticker {ticker} not found",
                 )
             stock = self.repository.get_stock_by_symbol(ticker)
-            print(stock_data)
-            stock_data = FetcherStockGPWSchema(**stock_data)
+
+            validated_stock_data = FetcherStockGPWSchema(**stock_data).model_dump()
+
             if stock:
-                print("JUZ ISTNIEJE!!")
-                self.repository.update_stock(stock_data.model_dump())
+                self.repository.update_stock(validated_stock_data)
             else:
-                stock = self.repository.create_stock(stock_data.model_dump())
+                stock = self.repository.create_stock(validated_stock_data)
 
             historical_data = self.fetcher.historical_data_from_last_fetch()
 

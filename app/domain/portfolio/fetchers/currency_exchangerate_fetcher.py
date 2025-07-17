@@ -40,3 +40,51 @@ class ExchangerateCurrencyRateFetcher:
         for currency, rate in sorted(rates.items()):
             print(f"1 {self.base_currency} = {rate:.4f} {currency}")
         print("-" * 40)
+
+
+import requests
+
+# Where USD is the base currency you want to use
+url = "https://v6.exchangerate-api.com/v6/YOUR-API-KEY/latest/USD"
+
+# Making our request
+response = requests.get(url)
+data = response.json()
+
+# Your JSON object
+print(data)
+from forex_python.converter import CurrencyRates
+
+c = CurrencyRates()
+rate = c.get_rate("USD", "PLN")
+print(f"Kurs USD/PLN: {rate}")
+import yfinance as yf
+
+# Lista par walutowych (format: "USDPLN=X" itd.)
+BASE = "PLN"
+currency_symbols = [
+    "USD",  # Dolar amerykański (USA)
+    "EUR",  # Euro (strefa euro)
+    "CNY",  # Juan chiński (Chiny)
+    "JPY",  # Jen japoński (Japonia)
+    "GBP",  # Funt szterling (Wielka Brytania)
+    "INR",  # Rupia indyjska (Indie)
+    "CAD",  # Dolar kanadyjski (Kanada)
+    "AUD",  # Dolar australijski (Australia)
+    "RUB",  # Rubel rosyjski (Rosja)
+    "TRY",  # Lira turecka (Turcja)
+    "ZAR",  # Rand południowoafrykański (RPA)
+    "SEK",  # Korona szwedzka (Szwecja)
+    "CHF",  # Frank szwajcarski (Szwajcaria)
+]
+
+pairs = [f"{currency_symbol}{BASE}=X" for currency_symbol in currency_symbols]
+
+for pair in pairs:
+    ticker = yf.Ticker(pair)
+    data = ticker.history(period="1d")  # dane z ostatniego dnia
+    if not data.empty:
+        close_price = data["Close"].iloc[-1]  # poprawka tutaj
+        print(f"Kurs {pair[:-2]}: {close_price:.4f}")
+    else:
+        print(f"Brak danych dla {pair}")

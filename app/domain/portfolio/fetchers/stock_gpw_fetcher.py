@@ -131,7 +131,6 @@ class GPWStockFetcher:
                 }
                 for _, row in hist_for_max.iterrows()
             ]
-
             price = info.get("currentPrice") or info.get("regularMarketPrice")
             symbol = info.get("symbol")
             name = info.get("shortName")
@@ -140,19 +139,19 @@ class GPWStockFetcher:
             market_cap = info.get("marketCap")
             market_state = info.get("marketState")
             description = info.get("longBusinessSummary")
-            debt_to_equity = (info.get("debtToEquity"),)
-            trailing_annual_dividend_yield = (info.get("trailingAnnualDividendYield"),)
-            return_on_equity = (info.get("returnOnEquity"),)
-            free_cashflow = (info.get("freeCashflow"),)
-            payout_ratio = (info.get("payoutRatio"),)
-            price_to_book = (info.get("priceToBook"),)
-            price_to_sales = (info.get("priceToSalesTrailing12Months"),)
-            eps_trailing_twelve_months = (info.get("epsTrailingTwelveMonths"),)
-            beta = (info.get("beta"),)
-            pe_ratio = (info.get("trailingPE"),)
-            average_volume_10d = (info.get("averageVolume10days"),)
-            employees = (info.get("fullTimeEmployees"),)
-
+            debt_to_equity = info.get("debtToEquity")
+            trailing_annual_dividend_yield = info.get("trailingAnnualDividendYield")
+            return_on_equity = info.get("returnOnEquity")
+            free_cashflow = info.get("freeCashflow")
+            payout_ratio = info.get("payoutRatio")
+            price_to_book = info.get("priceToBook")
+            price_to_sales = info.get("priceToSalesTrailing12Months")
+            eps_trailing_twelve_months = info.get("epsTrailingTwelveMonths")
+            beta = info.get("beta")
+            pe_ratio = info.get("trailingPE")
+            average_volume_10d = info.get("averageVolume10days")
+            employees = info.get("fullTimeEmployees")
+            circulating_supply = info.get("sharesOutstanding")
             price_change_percentage_1h = self._calculate_change(price, price_1h_ago)
             price_change_percentage_24h = self._calculate_change(price, price_24h_ago)
             price_change_percentage_7d = self._calculate_change(price, price_7d_ago)
@@ -163,7 +162,6 @@ class GPWStockFetcher:
                 + hist_for_year
                 + hist_for_max
             )
-
             return {
                 "symbol": symbol,
                 "name": name,
@@ -189,6 +187,7 @@ class GPWStockFetcher:
                 "price_change_percentage_1h": price_change_percentage_1h,
                 "price_change_percentage_24h": price_change_percentage_24h,
                 "price_change_percentage_7d": price_change_percentage_7d,
+                "circulating_supply": circulating_supply,
             }
 
         except Exception as e:
@@ -217,21 +216,3 @@ class GPWStockFetcher:
             return df_filtered.iloc[-1]["Close"]
         else:
             return None
-
-    def print_summary(self, data: List[Dict[str, Optional[float]]]) -> None:
-        for item in data:
-            print(f"\nTicker: {item['ticker']}")
-            print(f"Nazwa: {item['name']}")
-            print(f"Sektor: {item['sector']}")
-            print(f"Aktualna cena: {item['price']} PLN")
-            print(f"Wolumen: {item['volume_24h']}")
-            print(f"Kapitalizacja rynkowa: {item['market_cap']} PLN")
-            print(
-                f"Cena 1h temu: {item['price_1h_ago']} PLN, zmiana: {item['change_1h']}%"
-            )
-            print(
-                f"📅 Cena 24h temu: {item['price_24h_ago']} PLN, zmiana: {item['change_24h']}%"
-            )
-            print(
-                f"Cena 7 dni temu: {item['price_7d_ago']} PLN, zmiana: {item['change_7d']}%"
-            )

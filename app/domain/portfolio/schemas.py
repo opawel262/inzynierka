@@ -31,7 +31,7 @@ class FetcherStockGPWSchema(BaseModel):
     sector: Optional[str] = None
     price: Optional[float] = None
     currency: Optional[str] = None
-    volume_24h: Optional[int] = None
+    volume_24h: Optional[float] = None
     market_cap: Optional[float] = None
     market_state: Optional[str] = None
     description: Optional[str] = None
@@ -50,6 +50,7 @@ class FetcherStockGPWSchema(BaseModel):
     price_change_percentage_1h: Optional[float] = None
     price_change_percentage_24h: Optional[float] = None
     price_change_percentage_7d: Optional[float] = None
+    circulating_supply: Optional[float] = None
 
     @field_validator("*", mode="before")
     @classmethod
@@ -57,3 +58,20 @@ class FetcherStockGPWSchema(BaseModel):
         if isinstance(v, tuple) and len(v) == 1:
             return v[0]
         return v
+
+
+class FetcherCoinGeckoCryptoSchema(BaseModel):
+    symbol: Optional[str] = None
+    name: Optional[str] = None
+    price: Optional[float] = None
+    currency: Optional[str] = None
+    market_cap: Optional[float] = None
+    price_change_percentage_1h: Optional[float] = None
+    price_change_percentage_24h: Optional[float] = None
+    price_change_percentage_7d: Optional[float] = None
+    volume_24h: Optional[float] = None
+    circulating_supply: Optional[float] = None
+    icon: Optional[str] = None
+    market_cap_rank: Optional[int] = None
+    total_supply: Optional[float] = None
+    max_supply: Optional[float] = None

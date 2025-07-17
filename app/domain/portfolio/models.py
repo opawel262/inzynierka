@@ -50,6 +50,8 @@ class BaseAsset(Base):
     price_change_percentage_1h = Column(Float, nullable=True)
     price_change_percentage_24h = Column(Float, nullable=True)
     price_change_percentage_7d = Column(Float, nullable=True)
+    volume_24h = Column(Float, nullable=True)
+    circulating_supply = Column(Float, nullable=True)
 
 
 class BaseHistoricalPrice(Base):
@@ -113,7 +115,6 @@ class Stock(BaseAsset):
     return_on_equity = Column(Float, nullable=True)
     free_cashflow = Column(Float, nullable=True)
     average_volume_10d = Column(Integer, nullable=True)
-    volume_24h = Column(Integer, nullable=True)
     employees = Column(Integer, nullable=True)
     market_state = Column(String, nullable=True)
     description = Column(String, nullable=True)
@@ -130,6 +131,9 @@ class Crypto(BaseAsset):
     transactions = relationship("CryptoTransaction", back_populates="crypto")
     historical_prices = relationship("CryptoHistoricalPrice", back_populates="crypto")
     icon = Column(String, nullable=True)
+    market_cap_rank = Column(Integer, nullable=True)
+    total_supply = Column(Float, nullable=True)
+    max_supply = Column(Float, nullable=True)
 
 
 ### TRANSACTIONS ###
@@ -186,3 +190,17 @@ class CryptoHistoricalPrice(BaseHistoricalPrice):
         Integer, ForeignKey("cryptos.id", ondelete="CASCADE"), nullable=False
     )
     crypto = relationship("Crypto", back_populates="historical_prices")
+
+
+#
+class CurrencyPairRate(Base):
+    __tablename__ = "currency_pair_rates"
+    id = Column(Integer, primary_key=True, index=True)
+    base_currency = Column(String(3), index=True)
+    qoute_currency = Column(String(3), index=True)
+    updated_at = Column(
+        DateTime,
+        server_default=func.timezone("UTC", func.now()),
+        onupdate=func.timezone("UTC", func.now()),
+    )
+    rate = Column(Float, nullable=False)
