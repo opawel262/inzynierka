@@ -1,6 +1,8 @@
 import requests
 import json
 from datetime import datetime
+from app.core.config import settings
+from typing import List, Dict, Any
 
 # from app.core.config import settings
 
@@ -80,39 +82,41 @@ class BinanaceCryptoFetcher:
 
     def fetch_historical_crypto_data(self, crypto_symbol):
         formatted_data = []
+        try:
+            for interval, period, limit in zip(
+                self.intervals, self.periods, self.limits
+            ):
+                params = self.params.copy()
+                params.update(
+                    {
+                        "symbol": f"{crypto_symbol.upper()}USDT",
+                        "limit": limit,
+                        "interval": interval,
+                    }
+                )
 
-        for interval, period, limit in zip(self.intervals, self.periods, self.limits):
-            params = self.params.copy()
-            params.update(
-                {
-                    "symbol": f"{crypto_symbol.upper()}USDT",
-                    "limit": limit,
-                    "interval": interval,
-                }
-            )
+                response = requests.get(self.url, params=params)
+                response.raise_for_status()
+                data_list = response.json()
 
-            response = requests.get(self.url, params=params)
-            response.raise_for_status()
-            data_list = response.json()
+                for data in data_list:
+                    new_data = {
+                        "date": str(datetime.fromtimestamp(data[0] / 1000)),
+                        "open_price": round(float(data[1]), 2),
+                        "high_price": round(float(data[2]), 2),
+                        "low_price": round(float(data[3]), 2),
+                        "close_price": round(float(data[4]), 2),
+                        "volume": data[5],
+                        "interval": interval,
+                        "period": period,
+                    }
+                    formatted_data.append(new_data)
 
-            for data in data_list:
-                new_data = {
-                    "date": str(datetime.fromtimestamp(data[0] / 1000)),
-                    "open_price": round(float(data[1]), 2),
-                    "high_price": round(float(data[2]), 2),
-                    "low_price": round(float(data[3]), 2),
-                    "volume": data[5],
-                    "interval": interval,
-                    "period": period,
-                }
-                formatted_data.append(new_data)
+            return formatted_data
+        except requests.RequestException as e:
+            print(f"[ERROR] Błąd podczas pobierania danych: {e}")
+            return None
 
-        return formatted_data
-
-
-fetcher = BinanaceCryptoFetcher()
-
-print(fetcher.fetch_historical_crypto_data("btc"))
 
 # url = "https://api.binance.com/api/v1/klines"
 # params = {"symbol": "ALGOUSDT", "interval": "1d", "limit": 100}  # max = 1000

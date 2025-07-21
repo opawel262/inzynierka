@@ -6,9 +6,15 @@ from app.core.config import settings
 from app.domain.portfolio.repositories.gpw_stock_repository import GPWStockRepository
 from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
 from app.domain.portfolio.services.gpw_stock_service import GPWStockService
-from app.domain.portfolio.services.crypto_services import CoinGeckoCryptoService
+from app.domain.portfolio.services.crypto_services import (
+    CoinGeckoCryptoService,
+    BinanaceCryptoService,
+)
 from app.domain.portfolio.fetchers.stock_gpw_fetcher import GPWStockFetcher
-from app.domain.portfolio.fetchers.crypto_fetchers import CoinGeckoCryptoFetcher
+from app.domain.portfolio.fetchers.crypto_fetchers import (
+    CoinGeckoCryptoFetcher,
+    BinanaceCryptoFetcher,
+)
 
 router = APIRouter(
     prefix="/portfolio",
@@ -32,13 +38,21 @@ def fetch_and_save_stock(request: Request, db: Session = Depends(get_db)):
 @router.post("/fetch-crypto", status_code=status.HTTP_200_OK)
 @limiter.limit("60/minute")
 def fetch_crypto_data(request: Request, db: Session = Depends(get_db)):
-    stock_service = CoinGeckoCryptoService(
+    crypto_service = CoinGeckoCryptoService(
         fetcher=CoinGeckoCryptoFetcher(), repository=CryptoRepository(db_session=db)
     )
 
     # Fetch crypto data from CoinGecko
-    crypto_data = stock_service.fetch_and_save_crypto_data()
+    crypto_data = crypto_service.fetch_and_save_crypto_data()
     print(f"[INFO] Fetched {len(crypto_data)} crypto items")
-    print(crypto_data)  # Print first 5 items for debugging
 
+    crypto_historical_service = BinanaceCryptoService(
+        fetcher=BinanaceCryptoFetcher(), repository=CryptoRepository(db_session=db)
+    )
+
+    crypto_historical_data = (
+        crypto_historical_service.fetch_and_save_historical_cryptos_data()
+    )
+
+    print(crypto_historical_data)
     return {"message": "Crypto data fetched successfully", "data": crypto_data}

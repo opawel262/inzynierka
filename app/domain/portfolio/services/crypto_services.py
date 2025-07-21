@@ -1,9 +1,15 @@
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
 from app.domain.portfolio.models import Crypto, CryptoHistoricalPrice
-from app.domain.portfolio.fetchers.crypto_fetchers import CoinGeckoCryptoFetcher, BinanaceCryptoFetcher
+from app.domain.portfolio.fetchers.crypto_fetchers import (
+    CoinGeckoCryptoFetcher,
+    BinanaceCryptoFetcher,
+)
 from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
-from app.domain.portfolio.schemas import FetcherCoinGeckoCryptoSchema
+from app.domain.portfolio.schemas import (
+    FetcherCoinGeckoCryptoSchema,
+    FetcherHistoricalCryptoRecordSchema,
+)
 
 
 class CoinGeckoCryptoService:
@@ -35,18 +41,27 @@ class BinanaceCryptoService:
     def __init__(self, fetcher: BinanaceCryptoFetcher, repository: CryptoRepository):
         self.fetcher = fetcher
         self.repository = repository
-        
 
     def fetch_and_save_historical_cryptos_data(self):
-        symbols = self._get_all_crypto_symbol()[0:5]
-        for symbol in symbols:
-            historical_data = self.fetcher.fetch_historical_crypto_data(symbol)
+        cryptos = self.repository.get_all_crypto()
+        historical_data_list = []
+        for crypto in cryptos:
+            historical_data = self.fetcher.fetch_historical_crypto_data(crypto.symbol)
+            historical_data_list.append(historical_data)
             if not historical_data:
-            continue  # Skip if no data
+                continue
 
             for data_point in historical_data:
-            validated_data = CryptoHistoricalPrice(**data_point)
-            self.repository.save_historical_price(symbol, validated_data)
+                validated_data = FetcherHistoricalCryptoRecordSchema(
+                    **data_point
+                ).model_dump()
 
-        def _get_all_crypto_symbol(self) -> List[str]:
-        return self.repository.get_all_crypto_symbols()
+                if self.repository.get_crypto_historical_prices_by_symbol_period_date(
+                    symbol=crypto.symbol,
+                    period=validated_data["period"],
+                    date=validated_data["date"],
+                ):
+                    continue
+                self.repository.create_crypto_historical_price(crypto, validated_data)
+
+        return historical_data_list

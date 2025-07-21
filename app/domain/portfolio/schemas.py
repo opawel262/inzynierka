@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, List
 
 
-class FetcherHistoricalRecordSchema(BaseModel):
+class FetcherHistoricalStockRecordSchema(BaseModel):
     date: datetime
     open_price: Optional[float] = None
     close_price: Optional[float] = None
@@ -14,12 +14,18 @@ class FetcherHistoricalRecordSchema(BaseModel):
     period: str
 
 
+class FetcherHistoricalCryptoRecordSchema(FetcherHistoricalStockRecordSchema):
+    volume: Optional[float] = None
+
+
 class FetcherHistoricalStockSchema(BaseModel):
-    one_h: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1h")
-    one_d: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1d")
-    one_mo: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1mo")
-    one_y: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="1y")
-    max_: Optional[List[FetcherHistoricalRecordSchema]] = Field(None, alias="max")
+    one_h: Optional[List[FetcherHistoricalStockRecordSchema]] = Field(None, alias="1h")
+    one_d: Optional[List[FetcherHistoricalStockRecordSchema]] = Field(None, alias="1d")
+    one_mo: Optional[List[FetcherHistoricalStockRecordSchema]] = Field(
+        None, alias="1mo"
+    )
+    one_y: Optional[List[FetcherHistoricalStockRecordSchema]] = Field(None, alias="1y")
+    max_: Optional[List[FetcherHistoricalStockRecordSchema]] = Field(None, alias="max")
 
     class Config:
         populate_by_name = True
