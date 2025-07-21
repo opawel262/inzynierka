@@ -38,8 +38,6 @@ class GPWStockService:
                     )
                 )
                 if historical_stock_price:
-                    self.repository.update_stock_historical_price(
-                        historical_stock_price, data
-                    )
+                    continue
                 else:
                     self.repository.create_stock_historical_price(stock, data)
