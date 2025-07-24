@@ -29,7 +29,7 @@ class CoinGeckoCryptoFetcher:
             "x-cg-demo-api-key": settings.COINGECKO_API_KEY,
         }
 
-    def fetch_data(self):
+    def fetch_crypto_data(self):
         try:
             response = requests.get(self.url, headers=self.headers, params=self.params)
             response.raise_for_status()

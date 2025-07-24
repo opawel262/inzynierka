@@ -30,5 +30,13 @@ celery_app.conf.beat_schedule = {
         "schedule": 600.0,
         "args": [gpw_tickers_part3],
     },
+    "fetch-coingecko-data-every-10-minutes": {
+        "task": "app.tasks.fetch_coingecko_data",
+        "schedule": 600.0,
+    },
+    "fetch-binance-data-every-10-minutes": {
+        "task": "app.tasks.fetch_binanace_data",
+        "schedule": 600.0,
+    },
 }
 celery_app.conf.timezone = "UTC"

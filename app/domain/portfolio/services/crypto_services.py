@@ -18,7 +18,7 @@ class CoinGeckoCryptoService:
         self.repository = repository
 
     def fetch_and_save_crypto_data(self):
-        crypto_data = self.fetcher.fetch_data()
+        crypto_data = self.fetcher.fetch_crypto_data()
         if not crypto_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -42,7 +42,7 @@ class BinanaceCryptoService:
         self.fetcher = fetcher
         self.repository = repository
 
-    def fetch_and_save_historical_cryptos_data(self):
+    def fetch_and_save_historical_crypto_data(self):
         cryptos = self.repository.get_all_crypto()
         historical_data_list = []
         for crypto in cryptos:
