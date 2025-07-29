@@ -38,5 +38,9 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.fetch_binanace_data",
         "schedule": 600.0,
     },
+    "fetch-currency-exchange-rates-every-5-minutes": {
+        "task": "app.tasks.fetch_currency_exchange_rates",
+        "schedule": 300.0,
+    },
 }
 celery_app.conf.timezone = "UTC"

@@ -20,6 +20,7 @@ from app.domain.portfolio.views import (
     CryptoPortfolioAdminView,
     StockHistoricalPriceAdminView,
     CryptoHistoricalPriceAdminView,
+    CurrencyPairRateAdminView,
 )
 
 
@@ -65,3 +66,4 @@ def create_admin(app: FastAPI, engine: Engine) -> None:
     admin.add_view(CryptoPortfolioAdminView)
     admin.add_view(StockHistoricalPriceAdminView)
     admin.add_view(CryptoHistoricalPriceAdminView)
+    admin.add_view(CurrencyPairRateAdminView)

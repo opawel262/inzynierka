@@ -38,7 +38,6 @@ class GPWStockService:
                     )
                 )
                 if historical_stock_price:
-                    print("POTWARZA SIE OIMG ALE KOX")
                     continue
                 else:
                     self.repository.create_stock_historical_price(stock, data)

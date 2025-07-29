@@ -197,7 +197,7 @@ class CurrencyPairRate(Base):
     __tablename__ = "currency_pair_rates"
     id = Column(Integer, primary_key=True, index=True)
     base_currency = Column(String(3), index=True)
-    qoute_currency = Column(String(3), index=True)
+    quote_currency = Column(String(3), index=True)
     updated_at = Column(
         DateTime,
         server_default=func.timezone("UTC", func.now()),
