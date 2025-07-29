@@ -68,7 +68,6 @@ class CryptoRepository:
     def get_crypto_historical_prices_by_symbol_period_date(
         self, symbol: str, period: str, date: str
     ) -> List[CryptoHistoricalPrice]:
-        print(date)
         return (
             self.db.query(CryptoHistoricalPrice)
             .join(Crypto)

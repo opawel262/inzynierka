@@ -172,11 +172,9 @@ async def create_budget_transaction_service(
     budget = await get_budget_by_budget_user_ids(budget_id, user_id, db)
 
     if not budget:
-        print("wykonalo sioe nima mbudgeta")
         return None
 
     if str(budget.owner_id) != str(user_id):
-        print("Nima ownera")
         return None
 
     db.add(db_transaction)
