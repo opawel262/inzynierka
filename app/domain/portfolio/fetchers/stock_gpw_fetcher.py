@@ -7,21 +7,13 @@ from app.domain.portfolio.schemas import (
     FetcherStockGPWSchema,
     FetcherHistoricalStockSchema,
 )
-
-tickers = [
-    "06N",
-    "08N",
-    "11B",
-    "1AT",
-    "3RG",
-    "4MS",
-]
+import math
 
 
 class GPWStockFetcher:
     def __init__(
         self,
-        tickers: List[str] = tickers,
+        tickers: List[str] = [],
         timezone: pytz.timezone = pytz.timezone("Europe/Warsaw"),
     ):
         self.tickers = [ticker + ".WA" for ticker in tickers]
@@ -80,7 +72,7 @@ class GPWStockFetcher:
                     "low_price": round(float(row["Low"]), 2),
                     "volume": int(row["Volume"]),
                     "interval": "4h",
-                    "period": "7d",
+                    "period": "1w",
                 }
                 for _, row in hist_for_7_days.iterrows()
             ]
@@ -97,7 +89,7 @@ class GPWStockFetcher:
                     "low_price": round(float(row["Low"]), 2),
                     "volume": int(row["Volume"]),
                     "interval": "1d",
-                    "period": "1mo",
+                    "period": "1m",
                 }
                 for _, row in hist_for_month.iterrows()
             ]
@@ -111,7 +103,7 @@ class GPWStockFetcher:
                     "high_price": round(float(row["High"]), 2),
                     "low_price": round(float(row["Low"]), 2),
                     "volume": int(row["Volume"]),
-                    "interval": "1wk",
+                    "interval": "1w",
                     "period": "1y",
                 }
                 for _, row in hist_for_year.iterrows()
@@ -148,7 +140,9 @@ class GPWStockFetcher:
             price_to_sales = info.get("priceToSalesTrailing12Months")
             eps_trailing_twelve_months = info.get("epsTrailingTwelveMonths")
             beta = info.get("beta")
-            pe_ratio = info.get("trailingPE")
+            pe_ratio = info.get("forwardPE") or info.get("trailingPE")
+            if pe_ratio is not None and math.isfinite(float(pe_ratio)):
+                pe_ratio = None
             average_volume_10d = info.get("averageVolume10days")
             employees = info.get("fullTimeEmployees")
             circulating_supply = info.get("sharesOutstanding")

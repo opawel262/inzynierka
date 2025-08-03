@@ -2,17 +2,17 @@ from typing import List
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 
-from app.domain.portfolio.repositories.gpw_stock_repository import GPWStockRepository
+from app.domain.portfolio.repositories.stock_repository import StockRepository
 from app.domain.portfolio.services.gpw_stock_service import GPWStockService
 from app.domain.portfolio.fetchers.stock_gpw_fetcher import GPWStockFetcher
 from app.domain.portfolio.fetchers.crypto_fetchers import (
     CoinGeckoCryptoFetcher,
     BinanaceCryptoFetcher,
 )
-from app.domain.portfolio.services.crypto_services import (
+from app.domain.portfolio.services.coingecko_crypto_service import (
     CoinGeckoCryptoService,
-    BinanaceCryptoService,
 )
+from app.domain.portfolio.services.binanace_crypto_service import BinanaceCryptoService
 from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
 from app.domain.portfolio.fetchers.currency_exchange_fetcher import (
     ExchangerateCurrencyRateFetcher,
@@ -33,7 +33,7 @@ def fetch_gpw_data_by_tickers(tickers: List[str]) -> None:
     try:
         stock_service = GPWStockService(
             fetcher=GPWStockFetcher(tickers=tickers),
-            repository=GPWStockRepository(db_session=db),
+            repository=StockRepository(db_session=db),
         )
         stock_service.fetch_and_save_stock_data()
     finally:
@@ -73,6 +73,6 @@ def fetch_currency_exchange_rates() -> None:
             fetcher=ExchangerateCurrencyRateFetcher(),
             repository=CurrencyPairRateRepository(db_session=db),
         )
-        currency_service.fetch_and_save_currency_rates()
+        currency_service.fetch_and_save_currency_pair_rate()
     finally:
         db.close()

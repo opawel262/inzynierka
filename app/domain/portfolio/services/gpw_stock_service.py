@@ -1,13 +1,13 @@
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
-from app.domain.portfolio.repositories.gpw_stock_repository import GPWStockRepository
+from app.domain.portfolio.repositories.stock_repository import StockRepository
 from app.domain.portfolio.models import Stock, StockHistoricalPrice
 from app.domain.portfolio.fetchers.stock_gpw_fetcher import GPWStockFetcher
 from app.domain.portfolio.schemas import FetcherStockGPWSchema
 
 
 class GPWStockService:
-    def __init__(self, fetcher: GPWStockFetcher, repository: GPWStockRepository):
+    def __init__(self, fetcher: GPWStockFetcher, repository: StockRepository):
         self.fetcher = fetcher
         self.repository = repository
 

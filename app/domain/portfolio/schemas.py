@@ -3,6 +3,20 @@ from datetime import datetime
 from typing import Optional, List
 
 
+class BasicStockSchema(BaseModel):
+    symbol: str
+    name: str
+    price: float
+    currency: str
+    volume_24h: Optional[float] = None
+    market_cap: Optional[float] = None
+    market_state: Optional[str] = None
+    price_change_percentage_1h: Optional[float] = None
+    price_change_percentage_24h: Optional[float] = None
+    price_change_percentage_7d: Optional[float] = None
+    circulating_supply: Optional[float] = None
+
+
 class FetcherHistoricalStockRecordSchema(BaseModel):
     date: datetime
     open_price: Optional[float] = None

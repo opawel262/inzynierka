@@ -88,6 +88,11 @@ class StockPortfolio(BasePortfolio):
         "StockTransaction", back_populates="portfolio", cascade="all, delete-orphan"
     )
     owner = relationship("User", back_populates="stock_portfolios")
+    watched_stocks = relationship(
+        "WatchedStockInPortfolio",
+        back_populates="portfolio",
+        cascade="all, delete-orphan",
+    )
 
 
 # Portfolio for user to store crypto investments
@@ -98,6 +103,11 @@ class CryptoPortfolio(BasePortfolio):
         "CryptoTransaction", back_populates="portfolio", cascade="all, delete-orphan"
     )
     owner = relationship("User", back_populates="crypto_portfolios")
+    watched_cryptos = relationship(
+        "WatchedCryptoInPortfolio",
+        back_populates="portfolio",
+        cascade="all, delete-orphan",
+    )
 
 
 ### ASSETS ###
@@ -122,6 +132,9 @@ class Stock(BaseAsset):
 
     transactions = relationship("StockTransaction", back_populates="stock")
     historical_prices = relationship("StockHistoricalPrice", back_populates="stock")
+    watched_in_portfolios = relationship(
+        "WatchedStockInPortfolio", back_populates="stock", cascade="all, delete-orphan"
+    )
 
 
 # Transaction for crypto investments
@@ -134,6 +147,14 @@ class Crypto(BaseAsset):
     market_cap_rank = Column(Integer, nullable=True)
     total_supply = Column(Float, nullable=True)
     max_supply = Column(Float, nullable=True)
+
+    transactions = relationship("CryptoTransaction", back_populates="crypto")
+    historical_prices = relationship("CryptoHistoricalPrice", back_populates="crypto")
+    watched_in_portfolios = relationship(
+        "WatchedCryptoInPortfolio",
+        back_populates="crypto",
+        cascade="all, delete-orphan",
+    )
 
 
 ### TRANSACTIONS ###
@@ -204,3 +225,27 @@ class CurrencyPairRate(Base):
         onupdate=func.timezone("UTC", func.now()),
     )
     rate = Column(Float, nullable=False)
+
+
+class WatchedCryptoInPortfolio(Base):
+    __tablename__ = "watched_cryptos_in_portfolio"
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(
+        UUID(as_uuid=True), ForeignKey("crypto_portfolios.id", ondelete="CASCADE")
+    )
+    crypto_id = Column(Integer, ForeignKey("cryptos.id", ondelete="CASCADE"))
+
+    portfolio = relationship("CryptoPortfolio", back_populates="watched_cryptos")
+    crypto = relationship("Crypto", back_populates="watched_in_portfolios")
+
+
+class WatchedStockInPortfolio(Base):
+    __tablename__ = "watched_stocks_in_portfolio"
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(
+        UUID(as_uuid=True), ForeignKey("stock_portfolios.id", ondelete="CASCADE")
+    )
+    stock_id = Column(Integer, ForeignKey("stocks.id", ondelete="CASCADE"))
+
+    portfolio = relationship("StockPortfolio", back_populates="watched_stocks")
+    stock = relationship("Stock", back_populates="watched_in_portfolios")

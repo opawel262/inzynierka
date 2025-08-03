@@ -78,3 +78,18 @@ class CryptoRepository:
             )
             .first()
         )
+
+    def get_crypto_historical_prices_by_symbol_period_from_to_date(
+        self, symbol: str, period: str, from_date: datetime, to_date: datetime
+    ) -> List[CryptoHistoricalPrice]:
+        return (
+            self.db.query(CryptoHistoricalPrice)
+            .join(Crypto)
+            .filter(
+                Crypto.symbol == symbol,
+                CryptoHistoricalPrice.period == period,
+                CryptoHistoricalPrice.date >= from_date,
+                CryptoHistoricalPrice.date <= to_date,
+            )
+            .all()
+        )

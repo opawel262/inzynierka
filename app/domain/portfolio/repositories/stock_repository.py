@@ -12,7 +12,7 @@ def update_model(model: Stock, data: dict) -> Stock:
     return model
 
 
-class GPWStockRepository:
+class StockRepository:
     def __init__(self, db_session: Session):
         self.db = db_session
 
@@ -26,6 +26,16 @@ class GPWStockRepository:
 
     def get_all_stocks(self) -> List[Stock]:
         return self.db.query(Stock).all()
+
+    def get_stock_by_name_or_symbol_alike(self, name_or_symbol: str) -> List[Stock]:
+        return (
+            self.db.query(Stock)
+            .filter(
+                Stock.name.ilike(f"%{name_or_symbol}%")
+                | Stock.symbol.ilike(f"%{name_or_symbol}%")
+            )
+            .all()
+        )
 
     def update_stock(self, update_data: Dict) -> Stock:
         existing_stock = self.get_stock_by_symbol(update_data["symbol"])
@@ -85,4 +95,19 @@ class GPWStockRepository:
                 StockHistoricalPrice.date == date,
             )
             .first()
+        )
+
+    def get_stock_historical_prices_by_symbol_period_from_to_date(
+        self, symbol: str, period: str, from_date: datetime, to_date: datetime
+    ) -> List[StockHistoricalPrice]:
+        return (
+            self.db.query(StockHistoricalPrice)
+            .join(Stock)
+            .filter(
+                Stock.symbol == symbol,
+                StockHistoricalPrice.period == period,
+                StockHistoricalPrice.date >= from_date,
+                StockHistoricalPrice.date <= to_date,
+            )
+            .all()
         )

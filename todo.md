@@ -18,60 +18,74 @@
 
   - [x] GET /api/budgets — pobierz wszystkie budżety użytkownika
   - [x] POST /api/budgets — utwórz nowy budżet
-  - [x] GET /api/budgets/{budget_id} — szczegóły jednego budżetu
-  - [x] PATCH /api/budgets/{budget_id} — edytuj budżet
-  - [x] DELETE /api/budgets/{budget_id} — usuń budżet
+  - [x] GET /api/budgets/{budget_id} - szczegóły jednego budżetu
+  - [x] PATCH /api/budgets/{budget_id} - edytuj budżet
+  - [x] DELETE /api/budgets/{budget_id} - usuń budżet
 
-  - [ ] GET /api/budgets/{budget_id}/summary — podsumowanie pewnie jakies info jak do raportu tylko mniej szczegolowe nwm
+  - [ ] GET /api/budgets/{budget_id}/summary - podsumowanie pewnie jakies info jak do raportu tylko mniej szczegolowe nwm
 
-  - [x] GET /api/budgets/{budget_id}/categories — wyświetl wszystkie kategorie w budżecie
-  - [ ] GET /api/budgets/{budget_id}/report/pdf — jakis koks raporcik
-  - [ ] GET /api/budgets/{budget_id}/export/csv — eksportuj dane do CSV
-  - [ ] GET /api/budgets/{budget_id}/export/excel — eksportuj dane do Excela (XLSX)
+  - [x] GET /api/budgets/{budget_id}/categories - wyświetl wszystkie kategorie w budżecie
+  - [ ] GET /api/budgets/{budget_id}/report/pdf - jakis koks raporcik
+  - [ ] GET /api/budgets/{budget_id}/export/csv - eksportuj dane do CSV
+  - [ ] GET /api/budgets/{budget_id}/export/excel - eksportuj dane do Excela (XLSX)
 
-  - [x] GET /api/budgets/{budget_id}/transactions — lista transakcji w budżecie
-  - [x] POST /api/budgets/{budget_id}/transactions — dodaj transakcję
-  - [x] GET /api/budgets/{budget_id}/transactions/{transaction_id} — szczegóły transakcji
-  - [x] PATCH /api/budgets/{budget_id}/transactions/{transaction_id} — edytuj transakcję
-  - [x] DELETE /api/budgets/{budget_id}/transactions/{transaction_id} — usuń transakcję
+  - [x] GET /api/budgets/{budget_id}/transactions - lista transakcji w budżecie
+  - [x] POST /api/budgets/{budget_id}/transactions - dodaj transakcję
+  - [x] GET /api/budgets/{budget_id}/transactions/{transaction_id} - szczegóły transakcji
+  - [x] PATCH /api/budgets/{budget_id}/transactions/{transaction_id} - edytuj transakcję
+  - [x] DELETE /api/budgets/{budget_id}/transactions/{transaction_id} - usuń transakcję
 
 - [ ] Portfolio Management - STOCKS
 
-  - [ ] GET /api/portfolios/stocks — lista portfeli akcji
-  - [ ] POST /api/portfolios/stocks — utwórz nowy portfel akcji
-  - [ ] GET /api/portfolios/stocks/{portfolio_id} — szczegóły portfela
-  - [ ] PATCH /api/portfolios/stocks/{portfolio_id} — edytuj portfel
-  - [ ] DELETE /api/portfolios/stocks/{portfolio_id} — usuń portfel
+  - [ ] GET /api/portfolios/stocks - lista portfeli akcji
+  - [ ] POST /api/portfolios/stocks - utwórz nowy portfel akcji
+  - [ ] GET /api/portfolios/stocks/{portfolio_id} - szczegóły portfela
+  - [ ] PATCH /api/portfolios/stocks/{portfolio_id} - edytuj portfel
+  - [ ] DELETE /api/portfolios/stocks/{portfolio_id} - usuń portfel
 
-  - [ ] GET /api/portfolios/stocks/{portfolio_id}/transactions — lista transakcji
-  - [ ] POST /api/portfolios/stocks/{portfolio_id}/transactions — dodaj transakcję
-  - [ ] GET /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} — szczegóły transakcji
-  - [ ] PATCH /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} — edytuj transakcję
-  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} — usuń transakcję
-  - [ ] GET /api/assets/stocks/ — lista spółek z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
-  - [ ] GET /api/assets/stocks/{stock_id} — metadane spółki
-  - [ ] GET /api/assets/stocks/{stock_id}/historical — historia cen spółki
-  - [ ] GET /api/stocks/fields/metadata — metadane pól spółki (opis co znaczy beta, pe_ratio itd.)
+  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/watched_stocks/ - usuwa wszystkie obserwowane akcje w portfelu
+  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/watched_stocks/{stock_id} - usuwa obserwowana akcje po id w portfelu
+  - [ ] POST /api/portoflios/stocks/{portfolio_id}/watched_stocks/{stock_id} - dodaje obserwowana akcje po id w portfelu
+
+  - [ ] GET /api/portfolios/stocks/{portfolio_id}/transactions - lista transakcji (query_params: by_transactions by_watched_stocks)
+  - [ ] POST /api/portfolios/stocks/{portfolio_id}/transactions - dodaj transakcję
+  - [ ] GET /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} - szczegóły transakcji
+  - [ ] PATCH /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} - edytuj transakcję
+  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} - usuń transakcję
 
 - [ ] Portfolio Management - CRYPTOS
 
-  - [ ] GET /api/portfolios/cryptos — lista portfeli krypto
-  - [ ] POST /api/portfolios/cryptos — utwórz nowy portfel krypto
-  - [ ] GET /api/portfolios/cryptos/{portfolio_id} — szczegóły portfela
-  - [ ] PATCH /api/portfolios/cryptos/{portfolio_id} — edytuj portfel
-  - [ ] DELETE /api/portfolios/cryptos/{portfolio_id} — usuń portfel
+  - [ ] GET /api/portfolios/cryptos - lista portfeli krypto
+  - [ ] POST /api/portfolios/cryptos - utwórz nowy portfel krypto
+  - [ ] GET /api/portfolios/cryptos/{portfolio_id} - szczegóły portfela
+  - [ ] PATCH /api/portfolios/cryptos/{portfolio_id} - edytuj portfel
+  - [ ] DELETE /api/portfolios/cryptos/{portfolio_id} - usuń portfel
 
-  - [ ] GET /api/portfolios/cryptos/{portfolio_id}/transactions — lista transakcji
-  - [ ] POST /api/portfolios/cryptos/{portfolio_id}/transactions — dodaj transakcję
-  - [ ] GET /api/portfolios/cryptos/{portfolio_id}/transactions/{transaction_id} — szczegóły transakcji
-  - [ ] PATCH /api/portfolios/cryptos/{portfolio_id}/transactions/{transaction_id} — edytuj transakcję
-  - [ ] DELETE /api/portfolios/cryptos/{portfolio_id}/transactions/{transaction_id} — usuń transakcję
-  - [ ] GET /api/assets/cryptos/ - lista kryptowalut z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
-  - [ ] GET /api/assets/cryptos/{crypto_id} — informacje o kryptowalucie
-  - [ ] GET /api/assets/cryptos/{crypto_id}/historical — historia cen kryptowaluty
+  - [ ] DELETE /api/portfolios/cryptos/{portfolio_id}/watched_cryptos/ - usuwa wszystkie obserwowane akcje w portfelu
+  - [ ] DELETE /api/portfolios/cryptos/{portfolio_id}/watched_cryptos/{crypto_id} - usuwa obserwowana akcje po id w portfelu
+  - [ ] POST /api/portoflios/cryptos/{portfolio_id}/watched_cryptos/{crypto_id} - dodaje obserwowana akcje po id w portfelu
 
-- [ ] Integrate cryptocurrency info API (coingecko coincap)
-- [ ] Integrate stocks info yfinanace
+  - [ ] GET /api/portfolios/cryptos/{portfolio_id}/transactions - lista transakcji (query_params: by_transactions by_watched_stocks)
+  - [ ] POST /api/portfolios/cryptos/{portfolio_id}/transactions - dodaj transakcję
+  - [ ] GET /api/portfolios/cryptos/{portfolio_id}/transactions/{transaction_id} - szczegóły transakcji
+  - [ ] PATCH /api/portfolios/cryptos/{portfolio_id}/transactions/{transaction_id} - edytuj transakcję
+  - [ ] DELETE /api/portfolios/cryptos/{portfolio_id}/transactions/{transaction_id} - usuń transakcję
+
+- [ ] Assets
+
+  - [ ] GET /api/assets/stocks - lista spółek z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
+  - [ ] GET /api/assets/stocks/{stock_id} - szczegółowe informacje spółki
+  - [ ] GET /api/assets/stocks/{stock_id}/historical - historia cen spółki (po okresach razem z interwalami)
+  - [ ] GET /api/stocks/fields/metadata - metadane pól spółki (opis co znaczy beta, pe_ratio itd.)
+
+  - [ ] GET /api/assets/cryptos - lista kryptowalut z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
+  - [ ] GET /api/assets/cryptos/{crypto_id} - informacje o kryptowalucie
+  - [ ] GET /api/assets/cryptos/{crypto_id}/historical - historia cen kryptowaluty
+
+  - [ ] GET /api/assets/currencies
+
+- [x] Integrate cryptocurrency info API (coingecko coincap)
+- [x] Integrate stocks info yfinanace
 - [ ] Add redis (for handling websockets/http for crypto prices)
 - [ ] Implement WebSockets for real-time monitoring of cryptocurrency
 
@@ -89,5 +103,4 @@
 
 ## Documentation
 
-- [ ] Update README file
 - [ ] Diagram ERD (add title to budget and budgetransaction entity)
