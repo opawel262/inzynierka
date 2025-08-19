@@ -237,3 +237,19 @@ async def delete_budget_transaction_service(
     db.delete(transaction)
     db.commit()
     return True
+
+
+async def delete_budget_all_transactions_service(
+    budget_id: str, user_id: str, db: Session
+):
+    transactions = db.query(models.BudgetTransaction).filter(
+        models.BudgetTransaction.budget_id == budget_id,
+        models.BudgetTransaction.budget.has(owner_id=user_id),
+    )
+
+    if not transactions:
+        return False
+
+    transactions.delete(synchronize_session=False)
+    db.commit()
+    return True

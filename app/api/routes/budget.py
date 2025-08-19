@@ -26,6 +26,7 @@ from app.domain.budget.services import (
     get_budget_categories_service,
     get_budget_transaction_service,
     delete_budget_transaction_service,
+    delete_budget_all_transactions_service,
 )
 from typing import Annotated, Optional, Literal
 
@@ -269,6 +270,26 @@ async def update_budget_transaction(
         )
 
     return updated_transaction
+
+
+@router.delete("/{budget_id}/transactions")
+async def delete_budget_all_transactions(
+    request: Request,
+    budget_id: str,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+):
+    """
+    Delete all transactions for a specific budget.
+    """
+    success = await delete_budget_all_transactions_service(
+        budget_id=budget_id, user_id=user_id, db=db
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=404, detail="Transakcje nie znalezione lub brak dostępu"
+        )
 
 
 @router.delete("/{budget_id}/transactions/{transaction_id}", status_code=204)
