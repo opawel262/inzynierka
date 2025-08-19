@@ -60,8 +60,8 @@ def get_stock_details(
 @router.get("/stocks/{symbol}/historical", status_code=status.HTTP_200_OK)
 def get_stock_historical_data(
     symbol: str,
-    period: Literal["1d", "1w", "1m", "1y", "max"] = Query(
-        "1d",
+    period: Literal["1w", "1m", "1y", "max"] = Query(
+        "1w",
         description="Period for historical data.",
     ),
     db: Session = Depends(get_db),
@@ -72,10 +72,10 @@ def get_stock_historical_data(
             detail="Symbol jest wymagany.",
         )
 
-    if period not in ["1d", "1w", "1m", "1y", "max"]:
+    if period not in ["1w", "1m", "1y", "max"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nieprawidłowy okres. Dostępne okresy to: 1d, 1w, 1m, 1y, max.",
+            detail="Nieprawidłowy okres. Dostępne okresy to 1w, 1m, 1y, max.",
         )
 
     stock_repository = StockRepository(db_session=db)

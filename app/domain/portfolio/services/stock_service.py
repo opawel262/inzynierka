@@ -36,7 +36,9 @@ class StockService:
         self, symbol: str, period: str
     ) -> List[StockHistoricalPrice]:
 
-        if period == "1d":
+        if (
+            period == "1d"
+        ):  # There is no option in endpoint for this but it can be changed it later
             from_date = datetime.now() - timedelta(days=1)
         elif period == "1w":
             from_date = datetime.now() - timedelta(weeks=1)
@@ -67,7 +69,7 @@ class StockService:
         historical_prices = (
             self.repository.get_stock_historical_prices_by_symbol_period(
                 symbol=symbol,
-                period="1w",
+                period="max",
             )
         )
 

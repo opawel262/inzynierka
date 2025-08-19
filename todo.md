@@ -73,9 +73,9 @@
 
 - [ ] Assets
 
-  - [ ] GET /api/assets/stocks - lista spółek z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
-  - [ ] GET /api/assets/stocks/{stock_id} - szczegółowe informacje spółki
-  - [ ] GET /api/assets/stocks/{stock_id}/historical - historia cen spółki (po okresach razem z interwalami)
+  - [x] GET /api/assets/stocks - lista spółek z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
+  - [x] GET /api/assets/stocks/{stock_id} - szczegółowe informacje spółki
+  - [x] GET /api/assets/stocks/{stock_id}/historical - historia cen spółki (po okresach razem z interwalami)
   - [ ] GET /api/stocks/fields/metadata - metadane pól spółki (opis co znaczy beta, pe_ratio itd.)
 
   - [ ] GET /api/assets/cryptos - lista kryptowalut z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
