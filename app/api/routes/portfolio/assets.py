@@ -16,18 +16,6 @@ router = APIRouter(
     prefix="/portfolio/assets",
     tags=["Assets Data"],
 )
-import math
-
-
-def sanitize_floats(obj):
-    if isinstance(obj, dict):
-        return {k: sanitize_floats(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [sanitize_floats(v) for v in obj]
-    elif isinstance(obj, float):
-        if math.isinf(obj) or math.isnan(obj):
-            return None
-    return obj
 
 
 @router.get("/stocks", status_code=status.HTTP_200_OK)

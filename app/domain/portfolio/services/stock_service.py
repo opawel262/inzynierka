@@ -38,14 +38,16 @@ class StockService:
 
         if period == "1d":
             from_date = datetime.now() - timedelta(days=1)
-        if period == "1w":
+        elif period == "1w":
             from_date = datetime.now() - timedelta(weeks=1)
-        if period == "1m":
+        elif period == "1m":
             from_date = datetime.now() - timedelta(days=30)
-        if period == "1y":
+        elif period == "1y":
             from_date = datetime.now() - timedelta(days=365)
         else:
             from_date = datetime.now() - timedelta(days=1)
+        print(from_date)
+        print(period)
         to_date = datetime.now()
 
         historical_prices = (
