@@ -53,6 +53,9 @@ class BaseAsset(Base):
     volume_24h = Column(Float, nullable=True)
     circulating_supply = Column(Float, nullable=True)
 
+    def __str__(self):
+        return self.name
+
 
 class BaseHistoricalPrice(Base):
     __abstract__ = True
@@ -66,6 +69,9 @@ class BaseHistoricalPrice(Base):
     volume = Column(Float, nullable=True)
     interval = Column(String, nullable=False)
     period = Column(String, nullable=False)
+
+    def __str__(self):
+        return str(self.date)
 
 
 class BaseTransaction(Base):

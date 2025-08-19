@@ -38,10 +38,20 @@ class CryptoPortfolioAdminView(ModelView, model=CryptoPortfolio):
 
 class StockHistoricalPriceAdminView(ModelView, model=StockHistoricalPrice):
     column_list = "__all__"
+    column_sortable_list = [StockHistoricalPrice.date, StockHistoricalPrice.stock_id]
+    column_filters = [StockHistoricalPrice.date, StockHistoricalPrice.stock_id]
+    column_searchable_list = [StockHistoricalPrice.stock_id]
 
 
 class CryptoHistoricalPriceAdminView(ModelView, model=CryptoHistoricalPrice):
     column_list = "__all__"
+
+    column_sortable_list = [
+        CryptoHistoricalPrice.date,
+        CryptoHistoricalPrice.crypto_id,
+    ]
+    column_filters = [CryptoHistoricalPrice.date, CryptoHistoricalPrice.crypto_id]
+    column_searchable_list = [CryptoHistoricalPrice.crypto_id]
 
 
 class CurrencyPairRateAdminView(ModelView, model=CurrencyPairRate):
