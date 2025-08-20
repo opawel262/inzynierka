@@ -24,7 +24,7 @@ class CryptoRepository:
 
         return crypto
 
-    def get_all_crypto(self) -> List[Crypto]:
+    def get_all_cryptos(self) -> List[Crypto]:
         return self.db.query(Crypto).all()
 
     def update_crypto(self, update_data: Dict) -> Crypto:
@@ -90,6 +90,16 @@ class CryptoRepository:
                 CryptoHistoricalPrice.period == period,
                 CryptoHistoricalPrice.date >= from_date,
                 CryptoHistoricalPrice.date <= to_date,
+            )
+            .all()
+        )
+
+    def get_cryptos_by_name_or_symbol_alike(self, name_or_symbol: str) -> List[Crypto]:
+        return (
+            self.db.query(Crypto)
+            .filter(
+                Crypto.name.ilike(f"%{name_or_symbol}%")
+                | Crypto.symbol.ilike(f"%{name_or_symbol}%")
             )
             .all()
         )

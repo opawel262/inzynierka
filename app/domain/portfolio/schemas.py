@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, List
 
 
+## STOCKS
 class BasicStockSchema(BaseModel):
     symbol: str
     name: str
@@ -95,3 +96,20 @@ class FetcherCoinGeckoCryptoSchema(BaseModel):
     market_cap_rank: Optional[int] = None
     total_supply: Optional[float] = None
     max_supply: Optional[float] = None
+
+
+## CRYPTOS
+
+
+class BasicCryptoSchema(BaseModel):
+    symbol: str
+    name: str
+    price: float
+    currency: str
+    volume_24h: Optional[float] = None
+    market_cap: Optional[float] = None
+    price_change_percentage_1h: Optional[float] = None
+    price_change_percentage_24h: Optional[float] = None
+    price_change_percentage_7d: Optional[float] = None
+    circulating_supply: Optional[float] = None
+    market_cap_rank: Optional[int] = None

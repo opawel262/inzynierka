@@ -10,7 +10,7 @@ class BinanaceCryptoService:
         self.repository = repository
 
     def fetch_and_save_historical_crypto_data(self):
-        cryptos = self.repository.get_all_crypto()
+        cryptos = self.repository.get_all_cryptos()
         historical_data_list = []
         for crypto in cryptos:
             historical_data = self.fetcher.fetch_historical_crypto_data(crypto.symbol)
