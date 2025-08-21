@@ -14,10 +14,13 @@ from .models import (
 
 class StockAdminView(ModelView, model=Stock):
     column_list = "__all__"
+    column_list = ["symbol", "name", "market_cap", "market_cap_rank"]
+    column_sortable_list = [Stock.symbol, Stock.market_cap_rank]
 
 
 class CryptoAdminView(ModelView, model=Crypto):
-    column_list = "__all__"
+    column_list = ["symbol", "name", "market_cap", "market_cap_rank"]
+    column_sortable_list = [Crypto.symbol, Crypto.market_cap_rank]
 
 
 class StockTransactionAdminView(ModelView, model=StockTransaction):

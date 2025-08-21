@@ -25,7 +25,7 @@ class StockRepository:
         return stock
 
     def get_all_stocks(self) -> List[Stock]:
-        return self.db.query(Stock).all()
+        return self.db.query(Stock).order_by(Stock.market_cap_rank.asc()).all()
 
     def get_stock_by_name_or_symbol_alike(self, name_or_symbol: str) -> List[Stock]:
         return (
@@ -34,6 +34,7 @@ class StockRepository:
                 Stock.name.ilike(f"%{name_or_symbol}%")
                 | Stock.symbol.ilike(f"%{name_or_symbol}%")
             )
+            .order_by(Stock.market_cap_rank.asc())
             .all()
         )
 

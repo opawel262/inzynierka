@@ -47,6 +47,7 @@ class BaseAsset(Base):
         onupdate=func.timezone("UTC", func.now()),
     )
     market_cap = Column(BigInteger, nullable=True)
+    market_cap_rank = Column(Integer, nullable=True)
     price_change_percentage_1h = Column(Float, nullable=True)
     price_change_percentage_24h = Column(Float, nullable=True)
     price_change_percentage_7d = Column(Float, nullable=True)
@@ -150,7 +151,6 @@ class Crypto(BaseAsset):
     transactions = relationship("CryptoTransaction", back_populates="crypto")
     historical_prices = relationship("CryptoHistoricalPrice", back_populates="crypto")
     icon = Column(String, nullable=True)
-    market_cap_rank = Column(Integer, nullable=True)
     total_supply = Column(Float, nullable=True)
     max_supply = Column(Float, nullable=True)
 

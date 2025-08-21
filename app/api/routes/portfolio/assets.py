@@ -2,6 +2,7 @@ from typing import List, Optional, Literal
 
 from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
 from sqlalchemy.orm import Session
+from fastapi_pagination import Page, paginate
 
 from app.api.deps import get_db
 from app.core.utils import limiter
@@ -33,7 +34,7 @@ def get_stocks_data(
         None, description="Search term for stock names by ticker or name"
     ),
     db: Session = Depends(get_db),
-) -> List[BasicStockSchema]:
+) -> Page[BasicStockSchema]:
     """
     Return stock data from GPW.
     """
@@ -42,7 +43,7 @@ def get_stocks_data(
 
     stocks_data = stock_service.search_stocks(search=search)
 
-    return stocks_data
+    return paginate(stocks_data)
 
 
 @router.get("/stocks/fields-metadata", status_code=status.HTTP_200_OK)

@@ -16,6 +16,7 @@ class BasicStockSchema(BaseModel):
     price_change_percentage_24h: Optional[float] = None
     price_change_percentage_7d: Optional[float] = None
     circulating_supply: Optional[float] = None
+    market_cap_rank: Optional[int] = None
 
 
 class FetcherHistoricalStockRecordSchema(BaseModel):

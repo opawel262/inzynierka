@@ -41,3 +41,12 @@ class GPWStockService:
                     continue
                 else:
                     self.repository.create_stock_historical_price(stock, data)
+
+    def do_ranking(self) -> None:
+        stocks = self.repository.get_all_stocks()
+        ranked_stocks = sorted(stocks, key=lambda x: x.market_cap, reverse=True)
+        print("wykoinalo sie where ranking?")
+        for rank, stock in enumerate(ranked_stocks, start=1):
+            self.repository.update_stock(
+                {"market_cap_rank": rank, "symbol": stock.symbol}
+            )

@@ -36,6 +36,7 @@ def fetch_gpw_data_by_tickers(tickers: List[str]) -> None:
             repository=StockRepository(db_session=db),
         )
         stock_service.fetch_and_save_stock_data()
+        stock_service.do_ranking()
     finally:
         db.close()
 
