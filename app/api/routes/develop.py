@@ -88,7 +88,7 @@ def drop_all_tables(request: Request, db: Session = Depends(get_db)):
     except SQLAlchemyError as e:
         db.rollback()  # Roll back the transaction in case of error
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR500, detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
