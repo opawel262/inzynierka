@@ -154,7 +154,7 @@ def fetch_crypto_data(request: Request, db: Session = Depends(get_db)):
     )
 
     crypto_historical_data = (
-        crypto_historical_service.fetch_and_save_historical_cryptos_data()
+        crypto_historical_service.fetch_and_save_historical_crypto_data()
     )
 
     return {"message": "Crypto data fetched successfully", "data": crypto_data}
