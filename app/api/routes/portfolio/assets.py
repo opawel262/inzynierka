@@ -16,6 +16,8 @@ from app.domain.portfolio.schemas import (
     FetcherStockGPWSchema,
     BasicStockSchema,
     BasicCryptoSchema,
+    HistoricalStockDataSchema,
+    DetailCryptoSchema,
 )
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -154,6 +156,18 @@ def get_stocks_fields_metadata(
             "pl": "Procentowa zmiana ceny akcji w ciągu ostatnich 7 dni. Pokazuje tygodniowy trend kursu.",
             "en": "Percentage change in stock price over the last 7 days. Shows weekly price trend.",
         },
+        "price_change_percentage_30d": {
+            "pl": "Procentowa zmiana ceny akcji w ciągu ostatnich 30 dni. Pokazuje miesięczny trend kursu.",
+            "en": "Percentage change in stock price over the last 30 days. Shows monthly price trend.",
+        },
+        "price_change_percentage_1y": {
+            "pl": "Procentowa zmiana ceny akcji w ciągu ostatnich 1 roku. Pokazuje roczny trend kursu.",
+            "en": "Percentage change in stock price over the last 1 year. Shows yearly price trend.",
+        },
+        "price_change_percentage_max": {
+            "pl": "Procentowa zmiana ceny akcji w ciągu całej historii. Pokazuje maksymalny trend kursu.",
+            "en": "Percentage change in stock price over the entire history. Shows maximum price trend.",
+        },
         "circulating_supply": {
             "pl": "Liczba akcji w obiegu (shares outstanding). To faktyczna liczba akcji dostępnych na rynku.",
             "en": "Number of shares outstanding (circulating supply). The actual number of shares available on the market.",
@@ -185,19 +199,19 @@ def get_stock_details(
 @router.get("/stocks/{symbol}/historical", status_code=status.HTTP_200_OK)
 def get_stock_historical_data(
     symbol: str,
-    period: Literal["1w", "1m", "1y", "max"] = Query(
+    period: Literal["1d", "1w", "1m", "1y", "max"] = Query(
         "1w",
         description="Period for historical data.",
     ),
     db: Session = Depends(get_db),
-):
+) -> HistoricalStockDataSchema:
     if not symbol:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Symbol jest wymagany.",
         )
 
-    if period not in ["1w", "1m", "1y", "max"]:
+    if period not in ["1d", "1w", "1m", "1y", "max"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Nieprawidłowy okres. Dostępne okresy to 1w, 1m, 1y, max.",
@@ -223,7 +237,12 @@ def get_stock_historical_data(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Brak danych historycznych dla spółki z symbolem '{symbol}' w okresie '{period}'.",
         )
-    return historical_data
+
+    additional_data = stock_service.get_additional_stock_data_for_historical_endpoint(
+        symbol=symbol, period=period
+    )
+
+    return {"historical_data": historical_data, "additional_info": additional_data}
 
 
 @router.get("/cryptos", status_code=status.HTTP_200_OK)
@@ -244,3 +263,22 @@ def get_cryptos_data(
     cryptos_data = crypto_service.search_cryptos(search=search)
 
     return paginate(cryptos_data)
+
+
+@router.get("/cryptos/{symbol}", status_code=status.HTTP_200_OK)
+def get_crypto_details(
+    symbol: str, db: Session = Depends(get_db)
+) -> DetailCryptoSchema:
+    """
+    Return detailed information about a specific crypto by its symbol.
+    """
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+    crypto = crypto_service.get_crypto_by_symbol(symbol=symbol)
+    if not crypto:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Krypto z symbolem '{symbol}' nie zostało znalezione.",
+        )
+
+    return crypto

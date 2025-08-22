@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 
 ## STOCKS
@@ -28,6 +28,11 @@ class FetcherHistoricalStockRecordSchema(BaseModel):
     volume: Optional[int] = None
     interval: str
     period: str
+
+
+class HistoricalStockDataSchema(BaseModel):
+    historical_data: List[FetcherHistoricalStockRecordSchema]
+    additional_info: Dict[str, Any]
 
 
 class FetcherHistoricalCryptoRecordSchema(FetcherHistoricalStockRecordSchema):
@@ -72,6 +77,9 @@ class FetcherStockGPWSchema(BaseModel):
     price_change_percentage_1h: Optional[float] = None
     price_change_percentage_24h: Optional[float] = None
     price_change_percentage_7d: Optional[float] = None
+    price_change_percentage_30d: Optional[float] = None
+    price_change_percentage_1y: Optional[float] = None
+    price_change_percentage_max: Optional[float] = None
     circulating_supply: Optional[float] = None
 
     @field_validator("*", mode="before")
@@ -114,3 +122,12 @@ class BasicCryptoSchema(BaseModel):
     price_change_percentage_7d: Optional[float] = None
     circulating_supply: Optional[float] = None
     market_cap_rank: Optional[int] = None
+    icon: Optional[str] = None
+
+
+class DetailCryptoSchema(BasicCryptoSchema):
+    price_change_percentage_30d: Optional[float] = None
+    price_change_percentage_1y: Optional[float] = None
+    price_change_percentage_max: Optional[float] = None
+    circulating_supply: Optional[float] = None
+    updated_at: Optional[datetime] = None

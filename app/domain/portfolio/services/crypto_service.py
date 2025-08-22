@@ -18,3 +18,6 @@ class CryptoService:
         else:
             cryptos = self.repository.get_all_cryptos()
         return cryptos
+
+    def get_crypto_by_symbol(self, symbol: str) -> Crypto | None:
+        return self.repository.get_crypto_by_symbol(symbol=symbol)

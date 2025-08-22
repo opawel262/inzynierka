@@ -74,3 +74,17 @@ class StockService:
         )
 
         return historical_prices
+
+    def get_additional_stock_data_for_historical_endpoint(
+        self, symbol: str, period: str
+    ) -> Dict[str, Any]:
+        stock = self.repository.get_stock_by_symbol(symbol)
+
+        return {
+            "price_change_percentage_24h": stock.price_change_percentage_24h,
+            "price_change_percentage_7d": stock.price_change_percentage_7d,
+            "price_change_percentage_30d": stock.price_change_percentage_30d,
+            "price_change_percentage_1y": stock.price_change_percentage_1y,
+            "price_change_percentage_max": stock.price_change_percentage_max,
+            "current_price": stock.price,
+        }

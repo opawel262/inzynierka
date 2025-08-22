@@ -51,6 +51,9 @@ class BaseAsset(Base):
     price_change_percentage_1h = Column(Float, nullable=True)
     price_change_percentage_24h = Column(Float, nullable=True)
     price_change_percentage_7d = Column(Float, nullable=True)
+    price_change_percentage_30d = Column(Float, nullable=True)
+    price_change_percentage_1y = Column(Float, nullable=True)
+    price_change_percentage_max = Column(Float, nullable=True)
     volume_24h = Column(Float, nullable=True)
     circulating_supply = Column(Float, nullable=True)
 

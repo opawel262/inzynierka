@@ -78,8 +78,10 @@ class GPWStockFetcher:
             ]
 
             hist_for_month = spolka.history(period="1mo", interval="1d")
+
             seven_days_ago = now - timedelta(days=7)
             price_7d_ago = self._get_close_near_time(hist_for_month, seven_days_ago)
+            price_30d_ago = self.get_first_close_or_none(hist_for_month)
             hist_for_month = [
                 {
                     "date": row.name,  # index to Datetime
@@ -95,6 +97,7 @@ class GPWStockFetcher:
             ]
 
             hist_for_year = spolka.history(period="1y", interval="1wk")
+            price_1y_ago = self.get_first_close_or_none(hist_for_year)
             hist_for_year = [
                 {
                     "date": row.name,  # index to Datetime
@@ -110,6 +113,7 @@ class GPWStockFetcher:
             ]
 
             hist_for_max = spolka.history(period="max", interval="1mo")
+            price_max_ago = self.get_first_close_or_none(hist_for_max)
             hist_for_max = [
                 {
                     "date": row.name,  # index to Datetime
@@ -149,6 +153,10 @@ class GPWStockFetcher:
             price_change_percentage_1h = self._calculate_change(price, price_1h_ago)
             price_change_percentage_24h = self._calculate_change(price, price_24h_ago)
             price_change_percentage_7d = self._calculate_change(price, price_7d_ago)
+            price_change_percentage_30d = self._calculate_change(price, price_30d_ago)
+            price_change_percentage_1y = self._calculate_change(price, price_1y_ago)
+            price_change_percentage_max = self._calculate_change(price, price_max_ago)
+
             self._data_history = (
                 hist_for_day
                 + hist_for_7_days
@@ -181,6 +189,9 @@ class GPWStockFetcher:
                 "price_change_percentage_1h": price_change_percentage_1h,
                 "price_change_percentage_24h": price_change_percentage_24h,
                 "price_change_percentage_7d": price_change_percentage_7d,
+                "price_change_percentage_30d": price_change_percentage_30d,
+                "price_change_percentage_1y": price_change_percentage_1y,
+                "price_change_percentage_max": price_change_percentage_max,
                 "circulating_supply": circulating_supply,
             }
 
@@ -207,6 +218,12 @@ class GPWStockFetcher:
         df_filtered = hist_df[hist_df.index <= target_time]
 
         if not df_filtered.empty:
-            return df_filtered.iloc[-1]["Close"]
+            return df_filtered.iloc[-1]["Open"]
         else:
             return None
+
+    @staticmethod
+    def get_first_close_or_none(df):
+        if df is not None and not df.empty:
+            return float(df.iloc[0]["Open"])
+        return None
