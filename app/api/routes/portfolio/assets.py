@@ -234,7 +234,7 @@ def get_cryptos_data(
         None, description="Search term for crypto names by ticker or name"
     ),
     db: Session = Depends(get_db),
-) -> List[BasicCryptoSchema]:
+) -> Page[BasicCryptoSchema]:
     """
     Return crypto data from exchanges.
     """
@@ -243,4 +243,4 @@ def get_cryptos_data(
 
     cryptos_data = crypto_service.search_cryptos(search=search)
 
-    return cryptos_data
+    return paginate(cryptos_data)

@@ -25,7 +25,7 @@ class CryptoRepository:
         return crypto
 
     def get_all_cryptos(self) -> List[Crypto]:
-        return self.db.query(Crypto).all()
+        return self.db.query(Crypto).order_by(Crypto.market_cap_rank.asc()).all()
 
     def update_crypto(self, update_data: Dict) -> Crypto:
         existing_crypto = self.get_crypto_by_symbol(update_data["symbol"])
@@ -101,5 +101,6 @@ class CryptoRepository:
                 Crypto.name.ilike(f"%{name_or_symbol}%")
                 | Crypto.symbol.ilike(f"%{name_or_symbol}%")
             )
+            .order_by(Crypto.market_cap_rank.asc())
             .all()
         )

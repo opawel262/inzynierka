@@ -18,7 +18,6 @@ class CoinGeckoCryptoFetcher:
         self.url = "https://api.coingecko.com/api/v3/coins/markets"
         self.params = {
             "vs_currency": currency,
-            "order": "market_cap_desc",
             "per_page": per_page,
             "page": page,
             "sparkline": "false",

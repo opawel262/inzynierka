@@ -12,7 +12,7 @@ class CryptoService:
     def search_cryptos(self, search: str | None) -> List[Crypto]:
         if search:
             search = search.lower()
-            cryptos = self.repository.get_crypto_by_name_or_symbol_alike(
+            cryptos = self.repository.get_cryptos_by_name_or_symbol_alike(
                 name_or_symbol=search
             )
         else:
