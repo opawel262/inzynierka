@@ -74,13 +74,20 @@
 - [ ] Assets
 
   - [x] GET /api/assets/stocks - lista spółek z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
-  - [x] GET /api/assets/stocks/{stock_id} - szczegółowe informacje spółki
-  - [x] GET /api/assets/stocks/{stock_id}/historical - historia cen spółki (po okresach razem z interwalami)
-  - [ ] GET /api/assets/stocks/fields-metadata - metadane pól spółki (opis co znaczy beta, pe_ratio itd.)
+  - [x] GET /api/assets/stocks/symbols - lista symboli spółek
+  - [x] GET /api/assets/stocks/{symbol}/general - szczegółowe informacje spółki
+  - [x] GET /api/assets/stocks/{symbol}/price-performance - udostępnia aktualną cenę akcji oraz wskaźniki dotyczące wyników, w tym zmiany procentowe w przedziałach: 1h, 7d, 30d, 1y i max
+  - [x] GET /api/assets/stocks/{symbol}/historical - historia cen spółki (po okresach razem z interwalami)
+
+  - [x] GET /api/assets/stocks/fields-metadata - metadane pól spółki (opis co znaczy beta, pe_ratio itd.)
 
   - [ ] GET /api/assets/cryptos - lista kryptowalut z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
-  - [ ] GET /api/assets/cryptos/{crypto_id} - informacje o kryptowalucie
-  - [ ] GET /api/assets/cryptos/{crypto_id}/historical - historia cen kryptowaluty
+  - [x] GET /api/assets/cryptos/symbols - lista symboli kryptowalut
+
+  - [ ] GET /api/assets/cryptos/{symbol}/general - informacje o kryptowalucie
+  - [ ] GET /api/assets/cryptos/{symbol}/price-performance - udostępnia aktualną cenę kryptowaluty oraz wskaźniki dotyczące wyników, w tym zmiany procentowe w przedziałach: 1h, 7d, 30d, 1y i max
+
+  - [ ] GET /api/assets/cryptos/{symbol}/historical - historia cen kryptowaluty
 
   - [ ] GET /api/assets/currencies
 

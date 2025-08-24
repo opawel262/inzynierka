@@ -112,3 +112,27 @@ class StockRepository:
             )
             .all()
         )
+
+    def get_stocks_biggest_market_cap(self, limit: int = 3) -> List[Stock] | None:
+        return (
+            self.db.query(Stock)
+            .order_by(Stock.market_cap_rank.asc())
+            .limit(limit)
+            .all()
+        )
+
+    def get_stocks_biggest_gainers(self, limit: int = 3) -> List[Stock] | None:
+        return (
+            self.db.query(Stock)
+            .order_by(Stock.price_change_percentage_24h.desc())
+            .limit(limit)
+            .all()
+        )
+
+    def get_stocks_biggest_losers(self, limit: int = 3) -> List[Stock] | None:
+        return (
+            self.db.query(Stock)
+            .order_by(Stock.price_change_percentage_24h.asc())
+            .limit(limit)
+            .all()
+        )

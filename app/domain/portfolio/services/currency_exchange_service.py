@@ -21,9 +21,7 @@ class ExchangeRateCurrencyService:
 
     def fetch_and_save_currency_pair_rate(self):
         rates = self.fetcher.fetch_rates()
-        print(rates)
         for key, value in rates.items():
-            print(key, ", cena: ,", value)
             base_currency = key[0:3]  # key example is "USDPLN=X"
             quote_currency = key[3:6]
             rate = value
@@ -40,7 +38,6 @@ class ExchangeRateCurrencyService:
                         quote_currency=quote_currency, base_currency=base_currency
                     )
                 )
-                print(currency_pair_rate)
 
                 if currency_pair_rate:
                     self.repository.update_currency_pair_rate(currency_pair_rates_data)

@@ -150,7 +150,9 @@ def fetch_crypto_data(request: Request, db: Session = Depends(get_db)):
     crypto_data = crypto_service.fetch_and_save_crypto_data()
 
     crypto_historical_service = BinanaceCryptoService(
-        fetcher=BinanaceCryptoFetcher(), repository=CryptoRepository(db_session=db)
+        fetcher=BinanaceCryptoFetcher(),
+        repository=CryptoRepository(db_session=db),
+        pair_rate_repository=CurrencyPairRateRepository(db_session=db),
     )
 
     crypto_historical_data = (
@@ -164,7 +166,9 @@ def fetch_crypto_data(request: Request, db: Session = Depends(get_db)):
 @limiter.limit("60/minute")
 def fetch_binanace_crypto_data(request: Request, db: Session = Depends(get_db)):
     binanace_crypto_service = BinanaceCryptoService(
-        fetcher=BinanaceCryptoFetcher(), repository=CryptoRepository(db_session=db)
+        fetcher=BinanaceCryptoFetcher(),
+        repository=CryptoRepository(db_session=db),
+        pair_rate_repository=CurrencyPairRateRepository(db_session=db),
     )
 
     binanace_crypto_service.fetch_and_save_historical_crypto_data()

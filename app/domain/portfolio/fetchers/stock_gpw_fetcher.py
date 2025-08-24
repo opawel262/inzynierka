@@ -132,7 +132,7 @@ class GPWStockFetcher:
             name = info.get("shortName")
             sector = info.get("sector")
             volume_24h = info.get("volume") or info.get("regularMarketVolume")
-            market_cap = info.get("marketCap")
+            market_cap = circulating_supply
             market_state = info.get("marketState")
             description = info.get("longBusinessSummary")
             debt_to_equity = info.get("debtToEquity")
@@ -150,12 +150,36 @@ class GPWStockFetcher:
             average_volume_10d = info.get("averageVolume10days")
             employees = info.get("fullTimeEmployees")
             circulating_supply = info.get("sharesOutstanding")
-            price_change_percentage_1h = self._calculate_change(price, price_1h_ago)
-            price_change_percentage_24h = self._calculate_change(price, price_24h_ago)
-            price_change_percentage_7d = self._calculate_change(price, price_7d_ago)
-            price_change_percentage_30d = self._calculate_change(price, price_30d_ago)
-            price_change_percentage_1y = self._calculate_change(price, price_1y_ago)
-            price_change_percentage_max = self._calculate_change(price, price_max_ago)
+            price_change_percentage_1h = (
+                self._calculate_change(price, price_1h_ago)
+                if price_1h_ago is not None
+                else 0
+            )
+            price_change_percentage_24h = (
+                self._calculate_change(price, price_24h_ago)
+                if price_24h_ago is not None
+                else 0
+            )
+            price_change_percentage_7d = (
+                self._calculate_change(price, price_7d_ago)
+                if price_7d_ago is not None
+                else 0
+            )
+            price_change_percentage_30d = (
+                self._calculate_change(price, price_30d_ago)
+                if price_30d_ago is not None
+                else 0
+            )
+            price_change_percentage_1y = (
+                self._calculate_change(price, price_1y_ago)
+                if price_1y_ago is not None
+                else 0
+            )
+            price_change_percentage_max = (
+                self._calculate_change(price, price_max_ago)
+                if price_max_ago is not None
+                else 0
+            )
 
             self._data_history = (
                 hist_for_day

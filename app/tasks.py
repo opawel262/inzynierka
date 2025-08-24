@@ -58,7 +58,9 @@ def fetch_binanace_data() -> None:
     db: Session = SessionLocal()
     try:
         binanace_crypto_service = BinanaceCryptoService(
-            fetcher=BinanaceCryptoFetcher(), repository=CryptoRepository(db_session=db)
+            fetcher=BinanaceCryptoFetcher(),
+            repository=CryptoRepository(db_session=db),
+            pair_rate_repository=CurrencyPairRateRepository(db_session=db),
         )
         binanace_crypto_service.fetch_and_save_historical_crypto_data()
     finally:

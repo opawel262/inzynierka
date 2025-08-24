@@ -27,9 +27,6 @@ class StockService:
     def get_stock_by_symbol(self, symbol: str) -> Stock:
         stock = self.repository.get_stock_by_symbol(symbol=symbol)
 
-        if not stock:
-            raise Exception(f"Stock with symbol '{symbol}' not found.")
-
         return stock
 
     def get_stock_historical_by_symbol_period_data_from_last(
@@ -48,8 +45,6 @@ class StockService:
             from_date = datetime.now() - timedelta(days=365)
         else:
             from_date = datetime.now() - timedelta(days=1)
-        print(from_date)
-        print(period)
         to_date = datetime.now()
 
         historical_prices = (
@@ -75,16 +70,19 @@ class StockService:
 
         return historical_prices
 
-    def get_additional_stock_data_for_historical_endpoint(
-        self, symbol: str, period: str
-    ) -> Dict[str, Any]:
-        stock = self.repository.get_stock_by_symbol(symbol)
+    def get_global_performance_data(self) -> Dict[str, Any]:
+        stocks = self.repository.get_all_stocks()
+
+        total_volume_24h = sum(float(c.volume_24h) or 0 for c in stocks)
+        total_market_cap = round(sum(float(c.market_cap) or 0 for c in stocks), 0)
+        top_gainers_24h = self.repository.get_stocks_biggest_gainers()
+        top_losers_24h = self.repository.get_stocks_biggest_losers()
+        top_biggest_market_cap = self.repository.get_stocks_biggest_market_cap()
 
         return {
-            "price_change_percentage_24h": stock.price_change_percentage_24h,
-            "price_change_percentage_7d": stock.price_change_percentage_7d,
-            "price_change_percentage_30d": stock.price_change_percentage_30d,
-            "price_change_percentage_1y": stock.price_change_percentage_1y,
-            "price_change_percentage_max": stock.price_change_percentage_max,
-            "current_price": stock.price,
+            "total_volume_24h": total_volume_24h,
+            "total_market_cap": total_market_cap,
+            "top_gainers_24h": top_gainers_24h,
+            "top_losers_24h": top_losers_24h,
+            "top_market_cap_rank": top_biggest_market_cap,
         }

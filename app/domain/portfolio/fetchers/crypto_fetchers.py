@@ -75,11 +75,11 @@ class BinanaceCryptoFetcher:
     ):
         self.params = {}
         self.url = "https://api.binance.com/api/v1/klines"
-        self.intervals = ["1m", "1h", "1d", "1w"]  # for zip
-        self.periods = ["1h", "1d", "1m", "1y"]  # for zip
-        self.limits = [60, 24, 30, 52]  # for zip
+        self.intervals = ["1m", "1h", "6h", "1d", "1w", "1M"]  # for zip
+        self.periods = ["1h", "1d", "", "1m", "1y", ""]  # for zip
+        self.limits = [60, 24, 28, 30, 52, 100]  # for zip
 
-    def fetch_historical_crypto_data(self, crypto_symbol):
+    def fetch_historical_crypto_data(self, crypto_symbol, usd_to_pln: float):
         formatted_data = []
         try:
             for interval, period, limit in zip(
@@ -101,32 +101,21 @@ class BinanaceCryptoFetcher:
                 for data in data_list:
                     new_data = {
                         "date": str(datetime.fromtimestamp(data[0] / 1000)),
-                        "open_price": round(float(data[1]), 2),
-                        "high_price": round(float(data[2]), 2),
-                        "low_price": round(float(data[3]), 2),
-                        "close_price": round(float(data[4]), 2),
+                        "open_price": round(float(data[1]) * usd_to_pln, 2),
+                        "high_price": round(float(data[2]) * usd_to_pln, 2),
+                        "low_price": round(float(data[3]) * usd_to_pln, 2),
+                        "close_price": round(float(data[4]) * usd_to_pln, 2),
                         "volume": data[5],
                         "interval": interval,
-                        "period": period,
                     }
+                    if interval == "6h":
+                        new_data.update({"period": "1w"})
+                    elif interval == "1M":
+                        new_data.update({"period": "max"})
+                    else:
+                        new_data.update({"period": period})
                     formatted_data.append(new_data)
 
             return formatted_data
         except requests.RequestException as e:
-            print(f"[ERROR] Błąd podczas pobierania danych: {e}")
             return None
-
-
-# url = "https://api.binance.com/api/v1/klines"
-# params = {"symbol": "ALGOUSDT", "interval": "1d", "limit": 100}  # max = 1000
-# response = requests.get(url, params=params)
-# print(response.json())
-
-# for data in datas:
-#     print(f"Czas  otwarcia: {datetime.fromtimestamp(data[0] / 1000)}")
-#     print("Cena otwarcia: ", data[1])
-#     print("Najwyższa cena: ", data[2])
-#     print("Najniższa cena: ", data[3])
-#     print("Cena zamknięcia: ", data[4])
-#     print("Wolumen: ", data[5])
-# print(f"Czas zamknięcia: {datetime.fromtimestamp(data[6] / 1000)}")

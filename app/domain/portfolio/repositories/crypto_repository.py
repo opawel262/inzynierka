@@ -79,6 +79,19 @@ class CryptoRepository:
             .first()
         )
 
+    def get_crypto_historical_prices_by_symbol_period(
+        self, symbol: str, period: str
+    ) -> List[CryptoHistoricalPrice]:
+        return (
+            self.db.query(CryptoHistoricalPrice)
+            .join(Crypto)
+            .filter(
+                Crypto.symbol == symbol,
+                CryptoHistoricalPrice.period == period,
+            )
+            .all()
+        )
+
     def get_crypto_historical_prices_by_symbol_period_from_to_date(
         self, symbol: str, period: str, from_date: datetime, to_date: datetime
     ) -> List[CryptoHistoricalPrice]:
@@ -102,5 +115,26 @@ class CryptoRepository:
                 | Crypto.symbol.ilike(f"%{name_or_symbol}%")
             )
             .order_by(Crypto.market_cap_rank.asc())
+            .all()
+        )
+
+    def get_cryptos_biggest_market_cap(self, limit: int = 3) -> List[Crypto] | None:
+        return (
+            self.db.query(Crypto).order_by(Crypto.market_cap.desc()).limit(limit).all()
+        )
+
+    def get_cryptos_biggest_gainers(self, limit: int = 3) -> List[Crypto] | None:
+        return (
+            self.db.query(Crypto)
+            .order_by(Crypto.price_change_percentage_24h.desc())
+            .limit(limit)
+            .all()
+        )
+
+    def get_cryptos_biggest_losers(self, limit: int = 3) -> List[Crypto] | None:
+        return (
+            self.db.query(Crypto)
+            .order_by(Crypto.price_change_percentage_24h.asc())
+            .limit(limit)
             .all()
         )

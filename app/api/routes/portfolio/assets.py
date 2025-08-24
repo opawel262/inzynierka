@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict
 
 from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
 from sqlalchemy.orm import Session
@@ -14,10 +14,15 @@ from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
 
 from app.domain.portfolio.schemas import (
     FetcherStockGPWSchema,
+    FetcherHistoricalStockRecordSchema,
     BasicStockSchema,
     BasicCryptoSchema,
-    HistoricalStockDataSchema,
-    DetailCryptoSchema,
+    GeneralStockGPWSchema,
+    PricePerformanceStockGPWSchema,
+    PricePerformanceCryptochema,
+    SymbolStockSchema,
+    SymbolCryptoSchema,
+    GlobalMarketPerformanceSchema,
 )
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -48,13 +53,57 @@ def get_stocks_data(
     return paginate(stocks_data)
 
 
+@router.get("/stocks/symbols", status_code=status.HTTP_200_OK)
+@limiter.limit("1/second")
+def get_stocks_symbols(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> List[SymbolStockSchema]:
+    """
+    Return stock symbols from GPW.
+    """
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+
+    stocks_data = stock_service.search_stocks(search=None)
+
+    return stocks_data
+
+
+@router.get("/global-performance", status_code=status.HTTP_200_OK)
+@limiter.limit("1/second")
+def get_stocks_global_performance(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> GlobalMarketPerformanceSchema:
+    """
+    Return global performance data for stocks from GPW and crypto.
+    Includes: total 24h volume, total market capitalization,
+    top 3 gainers/losers by price change in 24h.
+    """
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+
+    # Calculate total 24h volume and market cap
+    global_crypto_data = crypto_service.get_global_performance_data()
+    global_stock_data = stock_service.get_global_performance_data()
+
+    return {
+        "global_crypto_data": global_crypto_data,
+        "global_stock_data": global_stock_data,
+    }
+
+
 @router.get("/stocks/fields-metadata", status_code=status.HTTP_200_OK)
 @limiter.limit("1/second")
 def get_stocks_fields_metadata(
     request: Request,
     lang: Literal["pl", "en"] = Query("pl", description="Language for field metadata"),
     db: Session = Depends(get_db),
-) -> dict:
+) -> Dict[str, str]:
     """
     Return metadata for stock fields (PL / EN).
     """
@@ -177,10 +226,29 @@ def get_stocks_fields_metadata(
     return {field: desc[lang] for field, desc in FIELDS_METADATA.items()}
 
 
-@router.get("/stocks/{symbol}", status_code=status.HTTP_200_OK)
-def get_stock_details(
+@router.get("/stocks/{symbol}/general", status_code=status.HTTP_200_OK)
+def get_stock_general_details(
     symbol: str, db: Session = Depends(get_db)
-) -> FetcherStockGPWSchema:
+) -> GeneralStockGPWSchema:
+    """
+    Return detailed information about a specific stock by its symbol.
+    """
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+    stock = stock_service.get_stock_by_symbol(symbol=symbol)
+    if not stock:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Spółka z symbolem '{symbol}' nie została znaleziona.",
+        )
+
+    return stock
+
+
+@router.get("/stocks/{symbol}/price-performance", status_code=status.HTTP_200_OK)
+def get_stock_performance_details(
+    symbol: str, db: Session = Depends(get_db)
+) -> PricePerformanceStockGPWSchema:
     """
     Return detailed information about a specific stock by its symbol.
     """
@@ -204,7 +272,7 @@ def get_stock_historical_data(
         description="Period for historical data.",
     ),
     db: Session = Depends(get_db),
-) -> HistoricalStockDataSchema:
+) -> List[FetcherHistoricalStockRecordSchema]:
     if not symbol:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -238,11 +306,7 @@ def get_stock_historical_data(
             detail=f"Brak danych historycznych dla spółki z symbolem '{symbol}' w okresie '{period}'.",
         )
 
-    additional_data = stock_service.get_additional_stock_data_for_historical_endpoint(
-        symbol=symbol, period=period
-    )
-
-    return {"historical_data": historical_data, "additional_info": additional_data}
+    return historical_data
 
 
 @router.get("/cryptos", status_code=status.HTTP_200_OK)
@@ -265,10 +329,27 @@ def get_cryptos_data(
     return paginate(cryptos_data)
 
 
-@router.get("/cryptos/{symbol}", status_code=status.HTTP_200_OK)
-def get_crypto_details(
+@router.get("/cryptos/symbols", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
+def get_crypto_symbols(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> List[SymbolCryptoSchema]:
+    """
+    Return all crypto symbols from exchanges.
+    """
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+
+    cryptos_data = crypto_service.search_cryptos(search=None)
+
+    return cryptos_data
+
+
+@router.get("/cryptos/{symbol}/general", status_code=status.HTTP_200_OK)
+def get_crypto_general_details(
     symbol: str, db: Session = Depends(get_db)
-) -> DetailCryptoSchema:
+) -> BasicCryptoSchema:
     """
     Return detailed information about a specific crypto by its symbol.
     """
@@ -282,3 +363,72 @@ def get_crypto_details(
         )
 
     return crypto
+
+
+@router.get("/crypto/{symbol}/price-performance", status_code=status.HTTP_200_OK)
+def get_crypto_performance_details(
+    symbol: str, db: Session = Depends(get_db)
+) -> PricePerformanceCryptochema:
+    """
+    Return price performance information about a specific crypto by its symbol.
+    """
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+    crypto = crypto_service.get_crypto_by_symbol(symbol=symbol)
+    if not crypto:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Krypto z symbolem '{symbol}' nie zostało znalezione.",
+        )
+
+    return crypto
+
+
+@router.get("/cryptos/{symbol}/historical", status_code=status.HTTP_200_OK)
+def get_crypto_historical_data(
+    symbol: str,
+    period: Literal["1h", "1d", "1w", "1m", "1y", "max"] = Query(
+        "1w",
+        description="Period for historical data.",
+    ),
+    db: Session = Depends(get_db),
+) -> List[FetcherHistoricalStockRecordSchema]:
+    if not symbol:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Symbol jest wymagany.",
+        )
+
+    if period not in [
+        "1h" "1d",
+        "1w" "1m",
+        "1y",
+        "max",
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nieprawidłowy okres. Dostępne okresy to 1h, 1d, 1w, 1m, 1y, max,",
+        )
+
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+    if period == "max":
+        historical_data = (
+            crypto_service.get_crypto_historical_by_symbol_data_from_last_max(
+                symbol=symbol
+            )
+        )
+    else:
+        historical_data = (
+            crypto_service.get_crypto_historical_by_symbol_period_data_from_last(
+                symbol=symbol, period=period
+            )
+        )
+
+    if not historical_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Brak danych historycznych dla kryptowaluty z symbolem '{symbol}' w okresie '{period}'.",
+        )
+
+    return historical_data

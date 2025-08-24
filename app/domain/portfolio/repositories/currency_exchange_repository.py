@@ -22,8 +22,8 @@ class CurrencyPairRateRepository:
         return (
             self.db.query(CurrencyPairRate)
             .filter(
-                CurrencyPairRate.quote_currency == quote_currency,
-                CurrencyPairRate.base_currency == base_currency,
+                CurrencyPairRate.quote_currency.ilike(quote_currency),
+                CurrencyPairRate.base_currency.ilike(base_currency),
             )
             .first()
         )
