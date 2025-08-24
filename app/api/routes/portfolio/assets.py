@@ -72,7 +72,7 @@ def get_stocks_symbols(
 
 @router.get("/global-performance", status_code=status.HTTP_200_OK)
 @limiter.limit("1/second")
-def get_stocks_global_performance(
+def get_market_global_performance(
     request: Request,
     db: Session = Depends(get_db),
 ) -> GlobalMarketPerformanceSchema:
