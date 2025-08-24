@@ -132,7 +132,7 @@ class GPWStockFetcher:
             name = info.get("shortName")
             sector = info.get("sector")
             volume_24h = info.get("volume") or info.get("regularMarketVolume")
-            market_cap = circulating_supply
+            market_cap = info.get("marketCap")
             market_state = info.get("marketState")
             description = info.get("longBusinessSummary")
             debt_to_equity = info.get("debtToEquity")

@@ -222,3 +222,14 @@ class GlobalCryptoPerformanceSchema(GlobalCryptoPerformanceSchema):
 class GlobalMarketPerformanceSchema(BaseModel):
     global_crypto_data: GlobalCryptoPerformanceSchema
     global_stock_data: GlobalStockPerformanceSchema
+
+
+# PAIR RATE
+
+
+class CurrencyPairRateSchema(BaseModel):
+    id: int
+    base_currency: str
+    quote_currency: str
+    rate: float
+    updated_at: datetime

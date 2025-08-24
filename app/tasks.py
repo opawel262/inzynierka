@@ -17,7 +17,7 @@ from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
 from app.domain.portfolio.fetchers.currency_exchange_fetcher import (
     ExchangerateCurrencyRateFetcher,
 )
-from app.domain.portfolio.repositories.currency_exchange_repository import (
+from app.domain.portfolio.repositories.currency_repository import (
     CurrencyPairRateRepository,
 )
 from app.domain.portfolio.services.currency_exchange_service import (

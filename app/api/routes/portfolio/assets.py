@@ -11,7 +11,12 @@ from app.domain.portfolio.repositories.stock_repository import StockRepository
 from app.domain.portfolio.services.stock_service import StockService
 from app.domain.portfolio.services.crypto_service import CryptoService
 from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
-
+from app.domain.portfolio.repositories.currency_repository import (
+    CurrencyPairRateRepository,
+)
+from app.domain.portfolio.services.currency_service import (
+    CurrencyService,
+)
 from app.domain.portfolio.schemas import (
     FetcherStockGPWSchema,
     FetcherHistoricalStockRecordSchema,
@@ -23,6 +28,7 @@ from app.domain.portfolio.schemas import (
     SymbolStockSchema,
     SymbolCryptoSchema,
     GlobalMarketPerformanceSchema,
+    CurrencyPairRateSchema,
 )
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -347,8 +353,9 @@ def get_crypto_symbols(
 
 
 @router.get("/cryptos/{symbol}/general", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
 def get_crypto_general_details(
-    symbol: str, db: Session = Depends(get_db)
+    request: Request, symbol: str, db: Session = Depends(get_db)
 ) -> BasicCryptoSchema:
     """
     Return detailed information about a specific crypto by its symbol.
@@ -366,8 +373,9 @@ def get_crypto_general_details(
 
 
 @router.get("/crypto/{symbol}/price-performance", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
 def get_crypto_performance_details(
-    symbol: str, db: Session = Depends(get_db)
+    symbol: str, request: Request, db: Session = Depends(get_db)
 ) -> PricePerformanceCryptochema:
     """
     Return price performance information about a specific crypto by its symbol.
@@ -385,8 +393,10 @@ def get_crypto_performance_details(
 
 
 @router.get("/cryptos/{symbol}/historical", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
 def get_crypto_historical_data(
     symbol: str,
+    request: Request,
     period: Literal["1h", "1d", "1w", "1m", "1y", "max"] = Query(
         "1w",
         description="Period for historical data.",
@@ -432,3 +442,26 @@ def get_crypto_historical_data(
         )
 
     return historical_data
+
+
+@router.get("/currencies/pair-rate", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
+def get_currency_pair_rate(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> List[CurrencyPairRateSchema]:
+    """
+    Return the current exchange rate between two currencies.
+    """
+    currency_repository = CurrencyPairRateRepository(db_session=db)
+    currency_service = CurrencyService(repository=currency_repository)
+
+    pair_rate = currency_service.get_currency_pair_rates()
+
+    if pair_rate is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Nie znaleziono kursu wymiany dla pary {base_currency}/{target_currency}.",
+        )
+
+    return pair_rate

@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
-from app.domain.portfolio.repositories.currency_exchange_repository import (
+from app.domain.portfolio.repositories.currency_repository import (
     CurrencyPairRateRepository,
 )
 from app.domain.portfolio.models import Stock, StockHistoricalPrice
