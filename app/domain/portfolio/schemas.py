@@ -165,6 +165,13 @@ class BasicCryptoSchema(BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class CryptoSearchSchema(BasicCryptoSchema):
+    price: float
+    price_change_percentage_24h: Optional[float] = None
+    price_change_percentage_7d: Optional[float] = None
+    price_change_percentage_30d: Optional[float] = None
+
+
 ## GLOBAL
 class CryptoGainersLosersSchema(BaseModel):
     symbol: str

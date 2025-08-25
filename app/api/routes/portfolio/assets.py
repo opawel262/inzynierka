@@ -29,6 +29,7 @@ from app.domain.portfolio.schemas import (
     SymbolCryptoSchema,
     GlobalMarketPerformanceSchema,
     CurrencyPairRateSchema,
+    CryptoSearchSchema,
 )
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -323,7 +324,7 @@ def get_cryptos_data(
         None, description="Search term for crypto names by ticker or name"
     ),
     db: Session = Depends(get_db),
-) -> Page[BasicCryptoSchema]:
+) -> Page[CryptoSearchSchema]:
     """
     Return crypto data from exchanges.
     """
@@ -408,10 +409,11 @@ def get_crypto_historical_data(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Symbol jest wymagany.",
         )
-
     if period not in [
-        "1h" "1d",
-        "1w" "1m",
+        "1h",
+        "1d",
+        "1w",
+        "1m",
         "1y",
         "max",
     ]:
