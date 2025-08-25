@@ -145,7 +145,7 @@ class GPWStockFetcher:
             eps_trailing_twelve_months = info.get("epsTrailingTwelveMonths")
             beta = info.get("beta")
             pe_ratio = info.get("forwardPE") or info.get("trailingPE")
-            if pe_ratio is not None and math.isfinite(float(pe_ratio)):
+            if pe_ratio is not None and math.isinf(float(pe_ratio)):
                 pe_ratio = None
             average_volume_10d = info.get("averageVolume10days")
             employees = info.get("fullTimeEmployees")
