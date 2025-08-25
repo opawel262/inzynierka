@@ -15,6 +15,8 @@ from .models import (
 class StockAdminView(ModelView, model=Stock):
     column_list = "__all__"
     column_list = ["symbol", "name", "market_cap", "market_cap_rank"]
+    column_searchable_list = [Stock.symbol]
+
     column_sortable_list = [Stock.symbol, Stock.market_cap_rank]
 
 
