@@ -61,6 +61,7 @@ class GeneralStockGPWSchema(BaseModel):
     currency: Optional[str] = None
     volume_24h: Optional[float] = None
     market_cap: Optional[float] = None
+    market_cap_rank: Optional[float] = None
     market_state: Optional[str] = None
     description: Optional[str] = None
     debt_to_equity: Optional[float] = None
