@@ -35,7 +35,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 router = APIRouter(
-    prefix="/portfolio/assets",
+    prefix="/assets",
     tags=["Assets Data"],
 )
 
@@ -446,14 +446,14 @@ def get_crypto_historical_data(
     return historical_data
 
 
-@router.get("/currencies/pair-rate", status_code=status.HTTP_200_OK)
+@router.get("/currencies/pair-rates", status_code=status.HTTP_200_OK)
 @limiter.limit("50/minutes")
 def get_currency_pair_rate(
     request: Request,
     db: Session = Depends(get_db),
 ) -> List[CurrencyPairRateSchema]:
     """
-    Return the current exchange rate between two currencies.
+    Return current exchange rates for multiple currency pairs.
     """
     currency_repository = CurrencyPairRateRepository(db_session=db)
     currency_service = CurrencyService(repository=currency_repository)
@@ -463,7 +463,7 @@ def get_currency_pair_rate(
     if pair_rate is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Nie znaleziono kursu wymiany dla pary {base_currency}/{target_currency}.",
+            detail=f"Nie znaleziono kursów wymiany dla podanych par walut.",
         )
 
     return pair_rate
