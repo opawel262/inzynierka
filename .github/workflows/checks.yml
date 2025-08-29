@@ -34,6 +34,7 @@ jobs:
           echo "EXAMPLE_USER_2_EMAIL=${{ secrets.EXAMPLE_USER_2_EMAIL }}" >> .env
           echo "EXAMPLE_USER_2_PASSWORD=${{ secrets.EXAMPLE_USER_2_PASSWORD }}" >> .env
           echo "EXAMPLE_USER_2_USERNAME=${{ secrets.EXAMPLE_USER_2_USERNAME }}" >> .env
+          echo "COINGECKO_API_KEY=${{ secrets.COINGECKO_API_KEY }}" >> .env
 
       - name: Build Docker images
         run: docker compose -f "docker-compose.test.yml" build
