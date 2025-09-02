@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal, Dict
+from typing import List, Optional, Literal, Dict, Any
 
 from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
 from sqlalchemy.orm import Session
@@ -37,7 +37,10 @@ from app.domain.portfolio.schemas.crypto_historical_schemas import (
 from app.domain.portfolio.schemas.stock_historical_schemas import (
     StockHistoricalPriceSchema,
 )
-from app.domain.portfolio.schemas.global_schemas import GlobalMarketPerformanceSchema
+from app.domain.portfolio.schemas.global_schemas import (
+    GlobalMarketPerformanceSchema,
+    GlobalSearchResultsSchema,
+)
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -108,6 +111,31 @@ def get_market_global_performance(
     return {
         "global_crypto_data": global_crypto_data,
         "global_stock_data": global_stock_data,
+    }
+
+
+@router.get("/global-search", status_code=status.HTTP_200_OK)
+@limiter.limit("1/second")
+def get_global_search(
+    request: Request,
+    search: Optional[str] = Query(None, description="Search term for global assets"),
+    db: Session = Depends(get_db),
+) -> GlobalSearchResultsSchema:
+    """
+    Return global search results for stocks and crypto.
+    """
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+
+    stock_results = stock_service.search_stocks(search=search)
+    crypto_results = crypto_service.search_cryptos(search=search)
+
+    return {
+        "stocks": stock_results,
+        "cryptos": crypto_results,
     }
 
 

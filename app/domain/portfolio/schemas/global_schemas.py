@@ -2,11 +2,13 @@ from pydantic import BaseModel
 from app.domain.portfolio.schemas.crypto_schemas import (
     CryptoLoserGainerSchema,
     CryptoBiggestMarketSchema,
+    CryptoSearchSchema,
 )
 
 from app.domain.portfolio.schemas.stock_schemas import (
     StockLoserGainerSchema,
     StockBiggestMarketSchema,
+    StockSearchSchema,
 )
 from typing import List
 
@@ -32,3 +34,8 @@ class GlobalStockPerformanceSchema(BaseModel):
 class GlobalMarketPerformanceSchema(BaseModel):
     global_crypto_data: GlobalCryptoPerformanceSchema
     global_stock_data: GlobalStockPerformanceSchema
+
+
+class GlobalSearchResultsSchema(BaseModel):
+    stocks: List[StockSearchSchema]
+    cryptos: List[CryptoSearchSchema]
