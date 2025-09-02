@@ -7,7 +7,6 @@ from app.domain.portfolio.models import Stock, StockHistoricalPrice
 from app.domain.portfolio.fetchers.currency_exchange_fetcher import (
     ExchangerateCurrencyRateFetcher,
 )
-from app.domain.portfolio.schemas import FetcherStockGPWSchema
 
 
 class ExchangeRateCurrencyService:

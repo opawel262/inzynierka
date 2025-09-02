@@ -45,6 +45,8 @@ class StockRepository:
                 f"Stock with symbol {update_data['symbol']} does not exist."
             )
         for key, value in update_data.items():
+            if value is None:
+                continue
             setattr(existing_stock, key, value)
 
         self.db.commit()

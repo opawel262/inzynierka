@@ -22,6 +22,9 @@ class BasePortfolio(Base):
     __abstract__ = True
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
+    title = Column(String(64), nullable=False)
+    description = Column(String(255), nullable=True)
+    color = Column(String(20), nullable=False)
     owner_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )

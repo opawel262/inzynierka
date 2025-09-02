@@ -39,16 +39,18 @@
 
   - [ ] GET /api/portfolios/stocks - lista portfeli akcji
   - [ ] POST /api/portfolios/stocks - utwórz nowy portfel akcji
+  - [ ] DELETE /api/portfolios/stocks - usun wszystkie portfele akcji
   - [ ] GET /api/portfolios/stocks/{portfolio_id} - szczegóły portfela
   - [ ] PATCH /api/portfolios/stocks/{portfolio_id} - edytuj portfel
   - [ ] DELETE /api/portfolios/stocks/{portfolio_id} - usuń portfel
 
   - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/watched_stocks/ - usuwa wszystkie obserwowane akcje w portfelu
-  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/watched_stocks/{stock_id} - usuwa obserwowana akcje po id w portfelu
-  - [ ] POST /api/portoflios/stocks/{portfolio_id}/watched_stocks/{stock_id} - dodaje obserwowana akcje po id w portfelu
+  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/watched_stocks/{symbol} - usuwa obserwowana akcje po id w portfelu
+  - [ ] POST /api/portoflios/stocks/{portfolio_id}/watched_stocks/{symbol} - dodaje obserwowana akcje po id w portfelu
 
   - [ ] GET /api/portfolios/stocks/{portfolio_id}/transactions - lista transakcji (query_params: by_transactions by_watched_stocks)
   - [ ] POST /api/portfolios/stocks/{portfolio_id}/transactions - dodaj transakcję
+  - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/transactions - usun wszystkie transakcje portfela akcji
   - [ ] GET /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} - szczegóły transakcji
   - [ ] PATCH /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} - edytuj transakcję
   - [ ] DELETE /api/portfolios/stocks/{portfolio_id}/transactions/{transaction_id} - usuń transakcję
@@ -78,17 +80,15 @@
   - [x] GET /api/assets/stocks/{symbol}/general - szczegółowe informacje spółki
   - [x] GET /api/assets/stocks/{symbol}/price-performance - udostępnia aktualną cenę akcji oraz wskaźniki dotyczące wyników, w tym zmiany procentowe w przedziałach: 1h, 7d, 30d, 1y i max
   - [x] GET /api/assets/stocks/{symbol}/historical - historia cen spółki (po okresach razem z interwalami)
-
+  - [x] GET /api/assets/global-performance - ogolne informacje o stanu rynku (akcje i krypto)
   - [x] GET /api/assets/stocks/fields-metadata - metadane pól spółki (opis co znaczy beta, pe_ratio itd.)
-
   - [x] GET /api/assets/cryptos - lista kryptowalut z możliwością filtrowania/wyszukiwania (np. po nazwie, symbolu, sektorze)
   - [x] GET /api/assets/cryptos/symbols - lista symboli kryptowalut
-
   - [x] GET /api/assets/cryptos/{symbol}/general - informacje o kryptowalucie
   - [x] GET /api/assets/cryptos/{symbol}/price-performance - udostępnia aktualną cenę kryptowaluty oraz wskaźniki dotyczące wyników, w tym zmiany procentowe w przedziałach: 1h, 7d, 30d, 1y i max
   - [x] GET /api/assets/cryptos/{symbol}/historical - historia cen kryptowaluty
 
-  - [ ] GET /api/assets/currencies
+  - [x] GET /api/assets/currencies/pair-rates
 
 - [x] Integrate cryptocurrency info API (coingecko coincap)
 - [x] Integrate stocks info yfinanace

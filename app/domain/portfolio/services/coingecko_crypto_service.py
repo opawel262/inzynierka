@@ -1,7 +1,7 @@
 from app.domain.portfolio.models import Crypto
 from app.domain.portfolio.fetchers.crypto_fetchers import CoinGeckoCryptoFetcher
 from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
-from app.domain.portfolio.schemas import FetcherCoinGeckoCryptoSchema
+from app.domain.portfolio.schemas.crypto_schemas import CryptoFetcherSchema
 
 
 class CoinGeckoCryptoService:
@@ -15,7 +15,7 @@ class CoinGeckoCryptoService:
             raise Exception("No crypto data found")
 
         for data in crypto_data:
-            validated_data = FetcherCoinGeckoCryptoSchema(**data).model_dump()
+            validated_data = CryptoFetcherSchema(**data).model_dump()
 
             crypto = self.repository.get_crypto_by_symbol(validated_data["symbol"])
             if crypto:

@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from app.domain.portfolio.repositories.stock_repository import StockRepository
 from app.domain.portfolio.models import Stock, StockHistoricalPrice
 from app.domain.portfolio.fetchers.stock_gpw_fetcher import GPWStockFetcher
-from app.domain.portfolio.schemas import FetcherStockGPWSchema
+from app.domain.portfolio.schemas.stock_schemas import StockFetcherSchema
 
 
 class GPWStockService:
@@ -22,7 +22,7 @@ class GPWStockService:
                 )
             stock = self.repository.get_stock_by_symbol(ticker)
 
-            validated_stock_data = FetcherStockGPWSchema(**stock_data).model_dump()
+            validated_stock_data = StockFetcherSchema(**stock_data).model_dump()
 
             if stock:
                 self.repository.update_stock(validated_stock_data)

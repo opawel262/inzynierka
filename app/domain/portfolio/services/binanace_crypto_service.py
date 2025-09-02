@@ -1,7 +1,9 @@
 from typing import List, Dict, Any
 from app.domain.portfolio.fetchers.crypto_fetchers import BinanaceCryptoFetcher
 from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
-from app.domain.portfolio.schemas import FetcherHistoricalCryptoRecordSchema
+from app.domain.portfolio.schemas.crypto_historical_schemas import (
+    CryptoHistoricalPriceSchema,
+)
 
 from app.domain.portfolio.repositories.currency_repository import (
     CurrencyPairRateRepository,
@@ -38,9 +40,7 @@ class BinanaceCryptoService:
             price_change_percentage_dict = {"symbol": crypto.symbol}
             for i, data_point in enumerate(historical_data, start=1):
 
-                validated_data = FetcherHistoricalCryptoRecordSchema(
-                    **data_point
-                ).model_dump()
+                validated_data = CryptoHistoricalPriceSchema(**data_point).model_dump()
 
                 if not percentaged_calculated_1m and validated_data["period"] == "1m":
                     price_change_percentage = self.calculate_percentage_price_change(

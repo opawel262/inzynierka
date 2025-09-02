@@ -17,20 +17,27 @@ from app.domain.portfolio.repositories.currency_repository import (
 from app.domain.portfolio.services.currency_service import (
     CurrencyService,
 )
-from app.domain.portfolio.schemas import (
-    FetcherStockGPWSchema,
-    FetcherHistoricalStockRecordSchema,
-    BasicStockSchema,
-    BasicCryptoSchema,
-    GeneralStockGPWSchema,
-    PricePerformanceStockGPWSchema,
-    PricePerformanceCryptochema,
-    SymbolStockSchema,
-    SymbolCryptoSchema,
-    GlobalMarketPerformanceSchema,
-    CurrencyPairRateSchema,
-    CryptoSearchSchema,
+
+from app.domain.portfolio.schemas.currency_schemas import CurrencyPairRateSchema
+from app.domain.portfolio.schemas.stock_schemas import (
+    StockSymbolSchema,
+    StockBasicSchema,
+    StockSearchSchema,
+    StockPricePerformanceSchema,
 )
+from app.domain.portfolio.schemas.crypto_schemas import (
+    CryptoSymbolSchema,
+    CryptoBasicSchema,
+    CryptoSearchSchema,
+    CryptoPricePerformanceSchema,
+)
+from app.domain.portfolio.schemas.crypto_historical_schemas import (
+    CryptoHistoricalPriceSchema,
+)
+from app.domain.portfolio.schemas.stock_historical_schemas import (
+    StockHistoricalPriceSchema,
+)
+from app.domain.portfolio.schemas.global_schemas import GlobalMarketPerformanceSchema
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -48,7 +55,7 @@ def get_stocks_data(
         None, description="Search term for stock names by ticker or name"
     ),
     db: Session = Depends(get_db),
-) -> Page[BasicStockSchema]:
+) -> Page[StockSearchSchema]:
     """
     Return stock data from GPW.
     """
@@ -65,7 +72,7 @@ def get_stocks_data(
 def get_stocks_symbols(
     request: Request,
     db: Session = Depends(get_db),
-) -> List[SymbolStockSchema]:
+) -> List[StockSymbolSchema]:
     """
     Return stock symbols from GPW.
     """
@@ -236,7 +243,7 @@ def get_stocks_fields_metadata(
 @router.get("/stocks/{symbol}/general", status_code=status.HTTP_200_OK)
 def get_stock_general_details(
     symbol: str, db: Session = Depends(get_db)
-) -> GeneralStockGPWSchema:
+) -> StockBasicSchema:
     """
     Return detailed information about a specific stock by its symbol.
     """
@@ -255,7 +262,7 @@ def get_stock_general_details(
 @router.get("/stocks/{symbol}/price-performance", status_code=status.HTTP_200_OK)
 def get_stock_performance_details(
     symbol: str, db: Session = Depends(get_db)
-) -> PricePerformanceStockGPWSchema:
+) -> StockPricePerformanceSchema:
     """
     Return detailed information about a specific stock by its symbol.
     """
@@ -279,7 +286,7 @@ def get_stock_historical_data(
         description="Period for historical data.",
     ),
     db: Session = Depends(get_db),
-) -> List[FetcherHistoricalStockRecordSchema]:
+) -> List[StockHistoricalPriceSchema]:
     if not symbol:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -341,7 +348,7 @@ def get_cryptos_data(
 def get_crypto_symbols(
     request: Request,
     db: Session = Depends(get_db),
-) -> List[SymbolCryptoSchema]:
+) -> List[CryptoSymbolSchema]:
     """
     Return all crypto symbols from exchanges.
     """
@@ -357,7 +364,7 @@ def get_crypto_symbols(
 @limiter.limit("50/minutes")
 def get_crypto_general_details(
     request: Request, symbol: str, db: Session = Depends(get_db)
-) -> BasicCryptoSchema:
+) -> CryptoBasicSchema:
     """
     Return detailed information about a specific crypto by its symbol.
     """
@@ -377,7 +384,7 @@ def get_crypto_general_details(
 @limiter.limit("50/minutes")
 def get_crypto_performance_details(
     symbol: str, request: Request, db: Session = Depends(get_db)
-) -> PricePerformanceCryptochema:
+) -> CryptoPricePerformanceSchema:
     """
     Return price performance information about a specific crypto by its symbol.
     """
@@ -403,7 +410,7 @@ def get_crypto_historical_data(
         description="Period for historical data.",
     ),
     db: Session = Depends(get_db),
-) -> List[FetcherHistoricalStockRecordSchema]:
+) -> List[CryptoHistoricalPriceSchema]:
     if not symbol:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

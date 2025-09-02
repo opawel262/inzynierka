@@ -3,10 +3,7 @@ from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta
 import pandas as pd
 import pytz
-from app.domain.portfolio.schemas import (
-    FetcherStockGPWSchema,
-    FetcherHistoricalStockSchema,
-)
+
 import math
 
 
@@ -127,7 +124,7 @@ class GPWStockFetcher:
                 }
                 for _, row in hist_for_max.iterrows()
             ]
-            price = info.get("currentPrice") or info.get("regularMarketPrice")
+            price = info.get("currentPrice") or info.get("regularMarketPrice", 0)
             symbol = info.get("symbol")
             name = info.get("shortName")
             sector = info.get("sector")
