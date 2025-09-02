@@ -6,7 +6,7 @@ from app.core.config import settings
 
 
 router = APIRouter(
-    prefix="/portfolio/stocks",
+    prefix="/portfolios/stocks",
     tags=["Portfolio Management - Stocks"],
 )
 
