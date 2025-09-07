@@ -102,8 +102,53 @@ class CryptoPortfolioService:
         crypto_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=True
         )
-        print(transaction_data)
+
+        if (
+            transaction_data.get("crypto", None) is not None
+            and len(crypto_portfolio.watched_cryptos) > 0
+            and not any(
+                wc.crypto_id == transaction_data["crypto"].id
+                for wc in crypto_portfolio.watched_cryptos
+            )
+        ):
+            raise BadRequestError("Kryptowaluta nie jest obserwowana w tym portfelu")
+
+        if transaction_data["amount"] <= 0:
+            raise BadRequestError("Ilość musi być większa od 0")
+        if transaction_data["price_per_unit"] <= 0:
+            raise BadRequestError("Cena za jednostkę musi być większa od 0")
+        if transaction_data["transaction_type"] not in ["buy", "sell"]:
+            raise BadRequestError(
+                "Nieprawidłowy typ transakcji, musi być 'buy' lub 'sell'"
+            )
+
+        # Przypisz portfolio_id do danych transakcji
         transaction_data["portfolio_id"] = portfolio_id
+
+        # Walidacja ilości przy sprzedaży
+        if transaction_data["transaction_type"] == "sell":
+            crypto_id = transaction_data.get("crypto").id
+            if not crypto_id:
+                raise BadRequestError("Brak identyfikatora kryptowaluty w transakcji")
+
+            # Pobierz wszystkie transakcje dla tej kryptowaluty w portfelu
+            transactions = crypto_portfolio.crypto_transactions
+            total_bought = sum(
+                t.amount
+                for t in transactions
+                if t.crypto_id == crypto_id and t.transaction_type == "buy"
+            )
+            total_sold = sum(
+                t.amount
+                for t in transactions
+                if t.crypto_id == crypto_id and t.transaction_type == "sell"
+            )
+            current_amount = total_bought - total_sold
+
+            if transaction_data["amount"] > current_amount:
+                raise BadRequestError(
+                    "Nie można sprzedać więcej niż posiadasz w portfelu"
+                )
         return self.repository.create_transaction_in_crypto_portfolio(transaction_data)
 
     def get_transaction_in_portfolio(self, portfolio_id: str, transaction_id: str):
@@ -117,13 +162,21 @@ class CryptoPortfolioService:
 
         return transaction
 
-    def get_transactions_in_portfolio(self, portfolio_id: str):
+    def get_transactions_in_portfolio(self, portfolio_id: str, crypto: Crypto = None):
         crypto_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=False
         )
-
+        if (
+            crypto
+            and len(crypto_portfolio.watched_cryptos) > 0
+            and not any(
+                crypto and wc.crypto_id == crypto.id
+                for wc in crypto_portfolio.watched_cryptos
+            )
+        ):
+            raise BadRequestError("Kryptowaluta nie jest obserwowana w tym portfelu")
         transactions = self.repository.get_all_transactions_in_crypto_portfolio(
-            portfolio_id
+            portfolio_id, crypto=crypto
         )
 
         return transactions
@@ -135,12 +188,64 @@ class CryptoPortfolioService:
             portfolio_id, validate_permission_to_edit=True
         )
 
+        if (
+            update_data.get("crypto", None) is not None
+            and len(crypto_portfolio.watched_cryptos) > 0
+            and not any(
+                wc.crypto_id == update_data["crypto"].id
+                for wc in crypto_portfolio.watched_cryptos
+            )
+        ):
+            raise BadRequestError("Kryptowaluta nie jest obserwowana w tym portfelu")
         transaction = self.repository.get_transaction_in_crypto_portfolio_by_id(
             portfolio_id, transaction_id
         )
         if not transaction:
             raise NotFoundError("Nie znaleziono transakcji")
+        if update_data.get("amount") is not None and update_data["amount"] <= 0:
+            raise BadRequestError("Ilość musi być większa od 0")
+        if (
+            update_data.get("price_per_unit") is not None
+            and update_data["price_per_unit"] <= 0
+        ):
+            raise BadRequestError("Cena za jednostkę musi być większa od 0")
+        if update_data.get("transaction_type", None) is not None and update_data[
+            "transaction_type"
+        ] not in ["buy", "sell"]:
+            raise BadRequestError(
+                "Nieprawidłowy typ transakcji, musi być 'buy' lub 'sell'"
+            )
 
+        # Przypisz portfolio_id do danych transakcji
+        update_data["portfolio_id"] = portfolio_id
+
+        # Walidacja ilości przy sprzedaży
+        if (
+            update_data.get("transaction_type", None) is not None
+            and update_data["transaction_type"] == "sell"
+        ):
+            crypto_id = update_data.get("crypto").id
+            if not crypto_id:
+                raise BadRequestError("Brak identyfikatora kryptowaluty w transakcji")
+
+            # Pobierz wszystkie transakcje dla tej kryptowaluty w portfelu
+            transactions = crypto_portfolio.crypto_transactions
+            total_bought = sum(
+                t.amount
+                for t in transactions
+                if t.crypto_id == crypto_id and t.transaction_type == "buy"
+            )
+            total_sold = sum(
+                t.amount
+                for t in transactions
+                if t.crypto_id == crypto_id and t.transaction_type == "sell"
+            )
+            current_amount = total_bought - total_sold
+
+            if transaction_data["amount"] > current_amount:
+                raise BadRequestError(
+                    "Nie można sprzedać więcej niż posiadasz w portfelu"
+                )
         transaction = self.repository.update_transaction_in_crypto_portfolio(
             transaction, update_data
         )

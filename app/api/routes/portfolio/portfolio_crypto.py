@@ -13,6 +13,7 @@ from app.domain.portfolio.repositories.crypto_portfolio_repository import (
     CryptoPortfolioRepository,
 )
 from fastapi_pagination import Page, paginate
+from uuid import UUID
 from app.domain.portfolio.schemas.crypto_portfolio_schemas import (
     CryptoPortfolioCreateSchema,
     CryptoPortfolioSchema,
@@ -91,7 +92,7 @@ def delete_all_portfolio_cryptos(
 @limiter.limit("5/second")
 def get_detail_portfolio_crypto(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     db: Session = Depends(get_db),
     user_id=Depends(authenticate),
 ) -> CryptoPortfolioDetailSchema:
@@ -100,7 +101,9 @@ def get_detail_portfolio_crypto(
         crypto_portfolio_repository, user_id
     )
     try:
-        crypto_portfolio = crypto_portfolio_service.get_portfolio_by_id(portfolio_id)
+        crypto_portfolio = crypto_portfolio_service.get_portfolio_by_id(
+            str(portfolio_id)
+        )
     except NotFoundError as ne:
         raise HTTPException(status_code=ne.status_code, detail=str(ne))
     except UnauthorizedError as ue:
@@ -115,7 +118,7 @@ def get_detail_portfolio_crypto(
 @limiter.limit("1/second")
 def update_portfolio_crypto(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     update_data: CryptoPortfolioUpdateSchema,
     user_id: Annotated[str, Depends(authenticate)],
     db: Session = Depends(get_db),
@@ -126,7 +129,7 @@ def update_portfolio_crypto(
     )
     try:
         crypto_portfolio = crypto_portfolio_service.update_portfolio(
-            portfolio_id, update_data.model_dump()
+            str(portfolio_id), update_data.model_dump()
         )
     except NotFoundError as ne:
         raise HTTPException(status_code=ne.status_code, detail=str(ne))
@@ -141,7 +144,7 @@ def update_portfolio_crypto(
 @limiter.limit("1/second")
 def delete_portfolio_crypto(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     db: Session = Depends(get_db),
     user_id=Depends(authenticate),
 ):
@@ -150,7 +153,7 @@ def delete_portfolio_crypto(
         crypto_portfolio_repository, user_id
     )
     try:
-        crypto_portfolio = crypto_portfolio_service.delete_portfolio(portfolio_id)
+        crypto_portfolio = crypto_portfolio_service.delete_portfolio(str(portfolio_id))
     except NotFoundError as ne:
         raise HTTPException(status_code=ne.status_code, detail=str(ne))
     except UnauthorizedError as ue:
@@ -169,7 +172,7 @@ def delete_portfolio_crypto(
 @limiter.limit("5/second")
 def add_watched_crypto(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     crypto_symbol: str,
     user_id=Depends(authenticate),
     db: Session = Depends(get_db),
@@ -185,10 +188,10 @@ def add_watched_crypto(
 
         crypto = crypto_service.get_crypto_by_symbol(crypto_symbol)
         crypto_portfolio = crypto_portfolio_service.get_portfolio_by_id(
-            portfolio_id, validate_permission_to_edit=True
+            str(portfolio_id), validate_permission_to_edit=True
         )
         watched_crypto = crypto_portfolio_service.add_watched_crypto_to_portfolio(
-            portfolio_id, crypto
+            str(portfolio_id), crypto
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -207,7 +210,7 @@ def add_watched_crypto(
 @limiter.limit("5/second")
 def remove_watched_crypto(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     crypto_symbol: str,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
@@ -224,7 +227,7 @@ def remove_watched_crypto(
         crypto = crypto_service.get_crypto_by_symbol(crypto_symbol)
 
         watched_crypto = crypto_portfolio_service.delete_watched_crypto_from_portfolio(
-            portfolio_id, crypto
+            str(portfolio_id), crypto
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -240,7 +243,7 @@ def remove_watched_crypto(
 @limiter.limit("1/second")
 def remove_all_watched_cryptos(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
 ):
@@ -253,7 +256,7 @@ def remove_all_watched_cryptos(
 
         watched_crypto = (
             crypto_portfolio_service.delete_all_watched_cryptos_from_portfolio(
-                portfolio_id
+                str(portfolio_id)
             )
         )
     except BadRequestError as bre:
@@ -270,11 +273,20 @@ def remove_all_watched_cryptos(
 @limiter.limit("5/second")
 def get_portfolio_crypto_transactions(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
+    crypto_symbol: str = None,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
 ) -> Page[CryptoPortfolioTransactions]:
     try:
+        if crypto_symbol:
+            crypto_repository = CryptoRepository(db)
+            crypto_service = CryptoService(crypto_repository)
+            crypto = crypto_service.get_crypto_by_symbol(crypto_symbol)
+            if crypto is None:
+                raise NotFoundError(
+                    f"Kryptowaluta o symbolu {crypto_symbol} nie istnieje"
+                )
 
         crypto_portfolio_repository = CryptoPortfolioRepository(db)
         crypto_portfolio_service = CryptoPortfolioService(
@@ -282,7 +294,7 @@ def get_portfolio_crypto_transactions(
         )
 
         transactions = crypto_portfolio_service.get_transactions_in_portfolio(
-            portfolio_id
+            str(portfolio_id), crypto=crypto if crypto_symbol else None
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -298,7 +310,7 @@ def get_portfolio_crypto_transactions(
 @limiter.limit("5/second")
 def create_portfolio_crypto_transaction(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     transaction_data: CryptoPortfolioCreateTransaction,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
@@ -308,18 +320,22 @@ def create_portfolio_crypto_transaction(
         crypto_repository = CryptoRepository(db)
         crypto_service = CryptoService(crypto_repository)
 
+        transaction_data = transaction_data.model_dump()
+        crypto = crypto_service.get_crypto_by_symbol(
+            transaction_data["crypto"]["symbol"]
+        )
+        if crypto is None:
+            raise NotFoundError(
+                f"Kryptowaluta o symbolu {transaction_data['crypto']['symbol']} nie istnieje"
+            )
         crypto_portfolio_repository = CryptoPortfolioRepository(db)
         crypto_portfolio_service = CryptoPortfolioService(
             crypto_portfolio_repository, user_id
         )
 
-        transaction_data = transaction_data.model_dump()
-        crypto = crypto_service.get_crypto_by_symbol(
-            transaction_data["crypto"]["symbol"]
-        )
-        transaction_data.update({"portfolio_id": portfolio_id, "crypto": crypto})
+        transaction_data.update({"portfolio_id": str(portfolio_id), "crypto": crypto})
         created_transaction = crypto_portfolio_service.create_transaction_in_portfolio(
-            portfolio_id, transaction_data
+            str(portfolio_id), transaction_data
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -335,8 +351,8 @@ def create_portfolio_crypto_transaction(
 @limiter.limit("5/second")
 def get_detail_portfolio_crypto_transaction(
     request: Request,
-    portfolio_id: str,
-    transaction_id: str,
+    portfolio_id: UUID,
+    transaction_id: UUID,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
 ) -> CryptoPortfolioTransactionDetail:
@@ -348,7 +364,7 @@ def get_detail_portfolio_crypto_transaction(
         )
 
         transaction = crypto_portfolio_service.get_transaction_in_portfolio(
-            portfolio_id, transaction_id
+            str(portfolio_id), str(transaction_id)
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -364,8 +380,8 @@ def get_detail_portfolio_crypto_transaction(
 @limiter.limit("5/second")
 def update_portfolio_crypto_transaction(
     request: Request,
-    portfolio_id: str,
-    transaction_id: str,
+    portfolio_id: UUID,
+    transaction_id: UUID,
     update_transaction_data: CryptoPortfolioUpdateTransaction,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
@@ -388,10 +404,16 @@ def update_portfolio_crypto_transaction(
             crypto = crypto_service.get_crypto_by_symbol(
                 update_transaction_data["crypto"].get("symbol", None)
             )
+            if crypto is None:
+                raise NotFoundError(
+                    f"Kryptowaluta o symbolu {update_transaction_data['crypto']['symbol']} nie istnieje"
+                )
 
-        update_transaction_data.update({"crypto": crypto, "portfolio_id": portfolio_id})
+        update_transaction_data.update(
+            {"crypto": crypto, "portfolio_id": str(portfolio_id)}
+        )
         created_transaction = crypto_portfolio_service.update_transaction_in_portfolio(
-            portfolio_id, transaction_id, update_transaction_data
+            str(portfolio_id), str(transaction_id), update_transaction_data
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -407,8 +429,8 @@ def update_portfolio_crypto_transaction(
 @limiter.limit("5/second")
 def delete_portfolio_crypto_transaction(
     request: Request,
-    portfolio_id: str,
-    transaction_id: str,
+    portfolio_id: UUID,
+    transaction_id: UUID,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
 ):
@@ -420,7 +442,7 @@ def delete_portfolio_crypto_transaction(
         )
 
         transaction = crypto_portfolio_service.delete_transaction_in_portfolio(
-            portfolio_id, transaction_id
+            str(portfolio_id), str(transaction_id)
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))
@@ -436,7 +458,7 @@ def delete_portfolio_crypto_transaction(
 @limiter.limit("5/second")
 def delete_portfolio_crypto_transactions(
     request: Request,
-    portfolio_id: str,
+    portfolio_id: UUID,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
 ):
@@ -448,7 +470,7 @@ def delete_portfolio_crypto_transactions(
         )
 
         transaction = crypto_portfolio_service.delete_all_transactions_in_portfolio(
-            portfolio_id
+            str(portfolio_id)
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))

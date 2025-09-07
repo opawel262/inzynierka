@@ -147,13 +147,14 @@ class CryptoPortfolioRepository:
     def get_all_transactions_in_crypto_portfolio(
         self,
         portfolio_id: str,
+        crypto: Crypto = None,
     ) -> List[CryptoTransaction]:
-        return (
-            self.db.query(CryptoTransaction)
-            .filter(CryptoTransaction.portfolio_id == portfolio_id)
-            .order_by(CryptoTransaction.transaction_date.desc())
-            .all()
+        query = self.db.query(CryptoTransaction).filter(
+            CryptoTransaction.portfolio_id == portfolio_id
         )
+        if crypto:
+            query = query.filter(CryptoTransaction.crypto == crypto)
+        return query.order_by(CryptoTransaction.transaction_date.desc()).all()
 
     def get_transaction_in_crypto_portfolio_by_id(
         self, portfolio_id: str, transaction_id: str

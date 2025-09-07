@@ -5,6 +5,12 @@ from uuid import UUID
 from app.domain.portfolio.schemas.crypto_schemas import CryptoSymbolSchema
 
 
+class CryptoBaseSchema(CryptoSymbolSchema):
+    icon: Optional[str] = None
+    name: Optional[str] = None
+    price: Optional[float] = None
+
+
 class CryptoPortfolioCreateTransaction(BaseModel):
     description: str
     transaction_type: str
@@ -25,11 +31,13 @@ class CryptoPortfolioUpdateTransaction(BaseModel):
 
 class CryptoPortfolioTransactions(BaseModel):
     id: UUID
-    transaction_type: Literal["buy", "sell"]
+    transaction_type: str
     amount: float
     price_per_unit: float
     transaction_date: datetime
-    crypto: CryptoSymbolSchema
+    crypto: CryptoBaseSchema
+    gain_loss: Optional[float] = None
+    gain_loss_percentage: Optional[float] = None
 
 
 class CryptoPortfolioTransactionDetail(CryptoPortfolioTransactions):
@@ -38,7 +46,13 @@ class CryptoPortfolioTransactionDetail(CryptoPortfolioTransactions):
 
 class CryptoPortfolioWatched(BaseModel):
     id: int
-    crypto: CryptoSymbolSchema
+    crypto: CryptoBaseSchema
+    percentage_profit_loss_24h: Optional[float] = None
+    profit_loss_24h: Optional[float] = None
+    total_invested: Optional[float] = None
+    avg_buy_price: Optional[float] = None
+    holdings: Optional[float] = None
+    current_value: Optional[float] = None
 
 
 class CryptoPortfolioCreateSchema(BaseModel):
@@ -53,6 +67,12 @@ class CryptoPortfolioSchema(CryptoPortfolioCreateSchema):
     owner_id: UUID
     created_at: datetime
     updated_at: datetime
+    total_watched_cryptos: int
+    total_transactions: int
+    total_investment: float
+    profit_loss: Optional[float] = None
+    profit_loss_percentage: Optional[float] = None
+    total_investment: Optional[float] = None
 
 
 class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
@@ -62,5 +82,4 @@ class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
 
 
 class CryptoPortfolioDetailSchema(CryptoPortfolioSchema):
-    crypto_transactions: list[CryptoPortfolioTransactions]
     watched_cryptos: list[CryptoPortfolioWatched]

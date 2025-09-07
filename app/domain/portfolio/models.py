@@ -107,6 +107,72 @@ class StockPortfolio(BasePortfolio):
         cascade="all, delete-orphan",
     )
 
+    @property
+    def total_investment(self):
+        return sum(tx.amount * tx.price_per_unit for tx in self.stock_transactions)
+
+    @property
+    def total_stocks(self):
+        return sum(tx.amount for tx in self.stock_transactions)
+
+    @property
+    def average_price_per_stock(self):
+        if self.total_stocks == 0:
+            return 0
+        return self.total_investment / self.total_stocks
+
+    @property
+    def total_transactions(self):
+        return len(self.stock_transactions)
+
+    @property
+    def total_watched_stocks(self):
+        return len(self.watched_stocks)
+
+    @property
+    def profit_loss(self):
+        total_current_value = sum(
+            tx.amount * tx.stock.price for tx in self.stock_transactions
+        )
+        return total_current_value - self.total_investment
+
+    @property
+    def profit_loss_percentage(self):
+        if self.total_investment == 0:
+            return 0
+        return (self.profit_loss / self.total_investment) * 100
+
+    @property
+    def the_most_profiting_stock(self):
+        profit_dict = {}
+        for tx in self.stock_transactions:
+            current_value = tx.amount * tx.stock.price
+            invested_value = tx.amount * tx.price_per_unit
+            profit = current_value - invested_value
+            if tx.stock.symbol in profit_dict:
+                profit_dict[tx.stock.symbol] += profit
+            else:
+                profit_dict[tx.stock.symbol] = profit
+        if not profit_dict:
+            return None
+        most_profitable_stock = max(profit_dict, key=profit_dict.get)
+        return most_profitable_stock, profit_dict[most_profitable_stock]
+
+    @property
+    def total_shares_percentage(self):
+        total_value = sum(tx.amount * tx.stock.price for tx in self.stock_transactions)
+        shares = {}
+        for tx in self.stock_transactions:
+            symbol = tx.stock.symbol
+            value = tx.amount * tx.stock.price
+            shares[symbol] = shares.get(symbol, 0) + value
+        if total_value == 0:
+            return {}
+        return {
+            symbol: round((value / total_value) * 100, 2)
+            for symbol, value in shares.items()
+        }
+
 
 # Portfolio for user to store crypto investments
 class CryptoPortfolio(BasePortfolio):
@@ -121,6 +187,39 @@ class CryptoPortfolio(BasePortfolio):
         back_populates="portfolio",
         cascade="all, delete-orphan",
     )
+
+    @property
+    def total_watched_cryptos(self):
+        return len(self.watched_cryptos)
+
+    @property
+    def total_transactions(self):
+        return len(self.crypto_transactions)
+
+    @property
+    def total_investment(self):
+        return sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.crypto_transactions
+            if tx.transaction_type.lower() == "buy"
+        ) - sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.crypto_transactions
+            if tx.transaction_type.lower() == "sell"
+        )
+
+    @property
+    def profit_loss(self):
+        total_current_value = sum(
+            tx.amount * tx.crypto.price for tx in self.crypto_transactions
+        )
+        return total_current_value - self.total_investment
+
+    @property
+    def profit_loss_percentage(self):
+        if self.total_investment == 0:
+            return 0
+        return (self.profit_loss / self.total_investment) * 100
 
 
 ### ASSETS ###
@@ -203,6 +302,19 @@ class CryptoTransaction(BaseTransaction):
     portfolio = relationship("CryptoPortfolio", back_populates="crypto_transactions")
     crypto = relationship("Crypto", back_populates="transactions")
 
+    @property
+    def gain_loss(self):
+        current_value = self.amount * self.crypto.price
+        invested_value = self.amount * self.price_per_unit
+        return current_value - invested_value
+
+    @property
+    def gain_loss_percentage(self):
+        invested_value = self.amount * self.price_per_unit
+        if invested_value == 0:
+            return 0
+        return (self.gain_loss / invested_value) * 100
+
 
 ### HISTORICAL PRICES ###
 # Historical prices for stock investments
@@ -249,6 +361,64 @@ class WatchedCryptoInPortfolio(Base):
 
     portfolio = relationship("CryptoPortfolio", back_populates="watched_cryptos")
     crypto = relationship("Crypto", back_populates="watched_in_portfolios")
+
+    @property
+    def total_invested(self):
+        return sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.portfolio.crypto_transactions
+            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "buy"
+        ) - sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.portfolio.crypto_transactions
+            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "sell"
+        )
+
+    @property
+    def avg_buy_price(self):
+        total_amount = sum(
+            tx.amount
+            for tx in self.portfolio.crypto_transactions
+            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "buy"
+        )
+        if total_amount == 0:
+            return 0
+        return self.total_invested / total_amount
+
+    @property
+    def holdings(self):
+        return sum(
+            tx.amount
+            for tx in self.portfolio.crypto_transactions
+            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "buy"
+        ) - sum(
+            tx.amount
+            for tx in self.portfolio.crypto_transactions
+            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "sell"
+        )
+
+    @property
+    def profit_loss_24h(self):
+        if self.crypto and self.crypto.price_change_percentage_24h is not None:
+            return round(
+                2
+                * (self.crypto.price_change_percentage_24h / 100)
+                * self.total_invested,
+                2,
+            )
+        return 0
+
+    @property
+    def percentage_profit_loss_24h(self):
+        if self.total_invested == 0:
+            return 0
+        return round((self.profit_loss_24h / self.total_invested) * 100, 2)
+
+    @property
+    def current_value(self):
+        if self.crypto:
+            return self.holdings * self.crypto.price
+        return 0
 
 
 class WatchedStockInPortfolio(Base):
