@@ -3,12 +3,14 @@ from datetime import datetime
 from typing import Optional, Literal
 from uuid import UUID
 from app.domain.portfolio.schemas.crypto_schemas import CryptoSymbolSchema
+from typing import Any
 
 
 class CryptoBaseSchema(CryptoSymbolSchema):
     icon: Optional[str] = None
     name: Optional[str] = None
     price: Optional[float] = None
+    price_change_percentage_24h: Optional[float] = None
 
 
 class CryptoPortfolioCreateTransaction(BaseModel):
@@ -76,7 +78,6 @@ class CryptoPortfolioSchema(CryptoPortfolioCreateSchema):
     profit_loss_percentage: Optional[float] = None
     total_investment: Optional[float] = None
     profit_loss_24h: Optional[float] = None
-    percentage_profit_loss_24h: Optional[float] = None
 
 
 class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
@@ -87,3 +88,8 @@ class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
 
 class CryptoPortfolioDetailSchema(CryptoPortfolioSchema):
     watched_cryptos: list[CryptoPortfolioWatched]
+    percentage_profit_loss_24h: Optional[float] = None
+    cryptos_percentage_holdings: Optional[dict[str, float]] = None
+    historical_value_7d: Optional[list[dict[str, Any]]] = None
+    historical_value_1m: Optional[list[dict[str, Any]]] = None
+    historical_value_1y: Optional[list[dict[str, Any]]] = None
