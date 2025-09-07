@@ -221,6 +221,24 @@ class CryptoPortfolio(BasePortfolio):
             return 0
         return (self.profit_loss / self.total_investment) * 100
 
+    @property
+    def profit_loss_24h(self):
+        total_24h_change = 0
+        for tx in self.crypto_transactions:
+            if tx.crypto and tx.crypto.price_change_percentage_24h is not None:
+                total_24h_change += (
+                    2
+                    * (tx.crypto.price_change_percentage_24h / 100)
+                    * (tx.amount * tx.price_per_unit)
+                )
+        return round(total_24h_change, 2)
+
+    @property
+    def percentage_profit_loss_24h(self):
+        if self.total_investment == 0:
+            return 0
+        return round((self.profit_loss_24h / self.total_investment) * 100, 2)
+
 
 ### ASSETS ###
 # Transaction for stock investments
@@ -303,17 +321,17 @@ class CryptoTransaction(BaseTransaction):
     crypto = relationship("Crypto", back_populates="transactions")
 
     @property
-    def gain_loss(self):
+    def profit_loss(self):
         current_value = self.amount * self.crypto.price
         invested_value = self.amount * self.price_per_unit
         return current_value - invested_value
 
     @property
-    def gain_loss_percentage(self):
+    def profit_loss_percentage(self):
         invested_value = self.amount * self.price_per_unit
         if invested_value == 0:
             return 0
-        return (self.gain_loss / invested_value) * 100
+        return (self.profit_loss / invested_value) * 100
 
 
 ### HISTORICAL PRICES ###
@@ -413,6 +431,19 @@ class WatchedCryptoInPortfolio(Base):
         if self.total_invested == 0:
             return 0
         return round((self.profit_loss_24h / self.total_invested) * 100, 2)
+
+    @property
+    def profit_loss(self):
+        if self.crypto:
+            current_value = self.holdings * self.crypto.price
+            return current_value - self.total_invested
+        return 0
+
+    @property
+    def profit_loss_percentage(self):
+        if self.total_invested == 0:
+            return 0
+        return (self.profit_loss / self.total_invested) * 100
 
     @property
     def current_value(self):

@@ -36,8 +36,8 @@ class CryptoPortfolioTransactions(BaseModel):
     price_per_unit: float
     transaction_date: datetime
     crypto: CryptoBaseSchema
-    gain_loss: Optional[float] = None
-    gain_loss_percentage: Optional[float] = None
+    profit_loss: Optional[float] = None
+    profit_loss_percentage: Optional[float] = None
 
 
 class CryptoPortfolioTransactionDetail(CryptoPortfolioTransactions):
@@ -49,6 +49,8 @@ class CryptoPortfolioWatched(BaseModel):
     crypto: CryptoBaseSchema
     percentage_profit_loss_24h: Optional[float] = None
     profit_loss_24h: Optional[float] = None
+    profit_loss: Optional[float] = None
+    profit_loss_percentage: Optional[float] = None
     total_invested: Optional[float] = None
     avg_buy_price: Optional[float] = None
     holdings: Optional[float] = None
@@ -73,6 +75,8 @@ class CryptoPortfolioSchema(CryptoPortfolioCreateSchema):
     profit_loss: Optional[float] = None
     profit_loss_percentage: Optional[float] = None
     total_investment: Optional[float] = None
+    profit_loss_24h: Optional[float] = None
+    percentage_profit_loss_24h: Optional[float] = None
 
 
 class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
