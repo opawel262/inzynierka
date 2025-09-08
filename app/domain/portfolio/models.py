@@ -176,7 +176,15 @@ class CryptoPortfolio(BasePortfolio):
 
     @property
     def current_value(self):
-        return sum(tx.amount * tx.crypto.price for tx in self.crypto_transactions)
+        return sum(
+            tx.amount * tx.crypto.price
+            for tx in self.crypto_transactions
+            if tx.transaction_type == "buy"
+        ) - sum(
+            tx.amount * tx.crypto.price
+            for tx in self.crypto_transactions
+            if tx.transaction_type == "sell"
+        )
 
     @property
     def cryptos_percentage_holdings(self):

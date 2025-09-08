@@ -198,12 +198,15 @@ class CryptoPortfolioRepository:
         self.db.commit()
         return True
 
-    def delete_all_transactions_in_crypto_portfolio(self, portfolio_id: str) -> bool:
-        transactions = (
-            self.db.query(CryptoTransaction)
-            .filter(CryptoTransaction.portfolio_id == portfolio_id)
-            .all()
+    def delete_all_transactions_in_crypto_portfolio(
+        self, portfolio_id: str, crypto: Crypto = None
+    ) -> bool:
+        transactions = self.db.query(CryptoTransaction).filter(
+            CryptoTransaction.portfolio_id == portfolio_id
         )
+        if crypto:
+            transactions = transactions.filter(CryptoTransaction.crypto == crypto)
+        transactions = transactions.all()
         if not transactions:
             return False
         for transaction in transactions:

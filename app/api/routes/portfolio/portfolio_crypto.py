@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Request
+from fastapi import APIRouter, HTTPException, status, Depends, Request, Path
 from typing import Annotated
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, authenticate
@@ -459,18 +459,26 @@ def delete_portfolio_crypto_transaction(
 def delete_portfolio_crypto_transactions(
     request: Request,
     portfolio_id: UUID,
+    crypto_symbol: str = None,
     user_id: str = Depends(authenticate),
     db: Session = Depends(get_db),
 ):
     try:
-
+        if crypto_symbol:
+            crypto_repository = CryptoRepository(db)
+            crypto_service = CryptoService(crypto_repository)
+            crypto = crypto_service.get_crypto_by_symbol(crypto_symbol)
+            if crypto is None:
+                raise NotFoundError(
+                    f"Kryptowaluta o symbolu {crypto_symbol} nie istnieje"
+                )
         crypto_portfolio_repository = CryptoPortfolioRepository(db)
         crypto_portfolio_service = CryptoPortfolioService(
             crypto_portfolio_repository, user_id
         )
 
         transaction = crypto_portfolio_service.delete_all_transactions_in_portfolio(
-            str(portfolio_id)
+            str(portfolio_id), crypto=crypto if crypto_symbol else None
         )
     except BadRequestError as bre:
         raise HTTPException(status_code=bre.status_code, detail=str(bre))

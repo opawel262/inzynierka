@@ -266,14 +266,31 @@ class CryptoPortfolioService:
         self.repository.delete_transaction_in_crypto_portfolio(transaction)
         return True
 
-    def delete_all_transactions_in_portfolio(self, portfolio_id: str):
+    def delete_all_transactions_in_portfolio(
+        self, portfolio_id: str, crypto: Crypto = None
+    ):
         crypto_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=True
         )
-
-        if not self.repository.delete_all_transactions_in_crypto_portfolio(
-            portfolio_id
+        if (
+            crypto
+            and len(crypto_portfolio.watched_cryptos) > 0
+            and not any(
+                crypto and wc.crypto_id == crypto.id
+                for wc in crypto_portfolio.watched_cryptos
+            )
         ):
-            raise NotFoundError("Brak transakcji w tym portfelu")
+            raise BadRequestError("Kryptowaluta nie jest obserwowana w tym portfelu")
+        transactions = self.repository.get_all_transactions_in_crypto_portfolio(
+            portfolio_id, crypto=crypto
+        )
+        if not self.repository.delete_all_transactions_in_crypto_portfolio(
+            portfolio_id, crypto=crypto
+        ):
+            raise NotFoundError(
+                "Brak transakcji w tym portfelu"
+                if crypto is None
+                else f"Brak transakcji dla kryptowaluty {crypto.symbol} w tym portfelu"
+            )
 
         return True

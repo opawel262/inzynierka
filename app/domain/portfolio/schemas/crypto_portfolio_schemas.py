@@ -78,6 +78,7 @@ class CryptoPortfolioSchema(CryptoPortfolioCreateSchema):
     profit_loss_percentage: Optional[float] = None
     total_investment: Optional[float] = None
     profit_loss_24h: Optional[float] = None
+    current_value: Optional[float] = None
 
 
 class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
