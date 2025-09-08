@@ -78,6 +78,8 @@ class CryptoPortfolioSchema(CryptoPortfolioCreateSchema):
     profit_loss_percentage: Optional[float] = None
     total_investment: Optional[float] = None
     profit_loss_24h: Optional[float] = None
+    percentage_profit_loss_24h: Optional[float] = None
+
     current_value: Optional[float] = None
 
 
@@ -89,7 +91,6 @@ class CryptoPortfolioUpdateSchema(CryptoPortfolioCreateSchema):
 
 class CryptoPortfolioDetailSchema(CryptoPortfolioSchema):
     watched_cryptos: list[CryptoPortfolioWatched]
-    percentage_profit_loss_24h: Optional[float] = None
     cryptos_percentage_holdings: Optional[dict[str, float]] = None
     historical_value_7d: Optional[list[dict[str, Any]]] = None
     historical_value_1m: Optional[list[dict[str, Any]]] = None
