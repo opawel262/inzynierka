@@ -84,6 +84,8 @@ class CryptoPortfolioService:
         if not watched_crypto:
             raise NotFoundError("Kryptowaluta nie jest obserwowana w tym portfelu")
 
+        self.delete_all_transactions_in_portfolio(portfolio_id, crypto=crypto)
+
         return self.repository.delete_watched_crypto_from_portfolio(watched_crypto)
 
     def delete_all_watched_cryptos_from_portfolio(self, portfolio_id: str):
@@ -242,7 +244,7 @@ class CryptoPortfolioService:
             )
             current_amount = total_bought - total_sold
 
-            if transaction_data["amount"] > current_amount:
+            if update_data["amount"] > current_amount:
                 raise BadRequestError(
                     "Nie można sprzedać więcej niż posiadasz w portfelu"
                 )
@@ -294,3 +296,47 @@ class CryptoPortfolioService:
             )
 
         return True
+
+    def get_portfolios_summary(self):
+        portfolios = self.repository.get_all_crypto_portfolios(self.user_id)
+        portfolio_summary = {
+            "total_investment": 0,
+            "total_current_value": 0,
+            "total_percentage_profit_loss_24h": 0,
+            "total_profit_loss_24h": 0,
+            "total_profit_loss": 0,
+            "total_portfolios": 0,
+            "total_transactions": 0,
+            "cryptos_percentage_holdings": {},
+            "historical_value_7d": [],
+            "historical_value_1m": [],
+            "historical_value_1y": [],
+        }
+        for portfolio in portfolios:
+            portfolio_summary["total_investment"] += portfolio.total_investment
+            portfolio_summary["total_current_value"] += portfolio.current_value
+            portfolio_summary[
+                "total_percentage_profit_loss_24h"
+            ] += portfolio.percentage_profit_loss_24h
+            portfolio_summary["total_profit_loss_24h"] += portfolio.profit_loss_24h
+            portfolio_summary["total_profit_loss"] += portfolio.profit_loss
+            portfolio_summary["total_portfolios"] += 1
+            portfolio_summary["total_transactions"] += len(
+                portfolio.crypto_transactions
+            )
+            cryptos_percentage_total_value = 0
+            for key, value in portfolio.cryptos_percentage_holdings.items():
+                if key in portfolio_summary["cryptos_percentage_holdings"]:
+                    portfolio_summary["cryptos_percentage_holdings"][key] += value
+                else:
+                    portfolio_summary["cryptos_percentage_holdings"][key] = value
+                cryptos_percentage_total_value += value
+
+            for key, value in portfolio.cryptos_percentage_holdings.items():
+                portfolio_summary["cryptos_percentage_holdings"][key] = (
+                    value / cryptos_percentage_total_value * 100
+                )
+
+            # for historical_value in portfolio.historical_value_7d:
+
+        return portfolio_summary

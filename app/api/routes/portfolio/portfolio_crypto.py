@@ -88,6 +88,21 @@ def delete_all_portfolio_cryptos(
     }
 
 
+@router.get("/summary")
+@limiter.limit("5/second")
+def get_portfolio_cryptos_summary(
+    request: Request,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> dict:
+    crypto_portfolio_repository = CryptoPortfolioRepository(db)
+    crypto_portfolio_service = CryptoPortfolioService(
+        crypto_portfolio_repository, user_id
+    )
+    summary = crypto_portfolio_service.get_portfolios_summary()
+    return summary
+
+
 @router.get("/{portfolio_id}")
 @limiter.limit("5/second")
 def get_detail_portfolio_crypto(
@@ -347,33 +362,33 @@ def create_portfolio_crypto_transaction(
     return created_transaction
 
 
-@router.get("/{portfolio_id}/transactions/{transaction_id}")
-@limiter.limit("5/second")
-def get_detail_portfolio_crypto_transaction(
-    request: Request,
-    portfolio_id: UUID,
-    transaction_id: UUID,
-    user_id: str = Depends(authenticate),
-    db: Session = Depends(get_db),
-) -> CryptoPortfolioTransactionDetail:
-    try:
+# @router.get("/{portfolio_id}/transactions/{transaction_id}")
+# @limiter.limit("5/second")
+# def get_detail_portfolio_crypto_transaction(
+#     request: Request,
+#     portfolio_id: UUID,
+#     transaction_id: UUID,
+#     user_id: str = Depends(authenticate),
+#     db: Session = Depends(get_db),
+# ) -> CryptoPortfolioTransactionDetail:
+#     try:
 
-        crypto_portfolio_repository = CryptoPortfolioRepository(db)
-        crypto_portfolio_service = CryptoPortfolioService(
-            crypto_portfolio_repository, user_id
-        )
+#         crypto_portfolio_repository = CryptoPortfolioRepository(db)
+#         crypto_portfolio_service = CryptoPortfolioService(
+#             crypto_portfolio_repository, user_id
+#         )
 
-        transaction = crypto_portfolio_service.get_transaction_in_portfolio(
-            str(portfolio_id), str(transaction_id)
-        )
-    except BadRequestError as bre:
-        raise HTTPException(status_code=bre.status_code, detail=str(bre))
-    except UnauthorizedError as ue:
-        raise HTTPException(status_code=ue.status_code, detail=str(ue))
-    except NotFoundError as ne:
-        raise HTTPException(status_code=ne.status_code, detail=str(ne))
+#         transaction = crypto_portfolio_service.get_transaction_in_portfolio(
+#             str(portfolio_id), str(transaction_id)
+#         )
+#     except BadRequestError as bre:
+#         raise HTTPException(status_code=bre.status_code, detail=str(bre))
+#     except UnauthorizedError as ue:
+#         raise HTTPException(status_code=ue.status_code, detail=str(ue))
+#     except NotFoundError as ne:
+#         raise HTTPException(status_code=ne.status_code, detail=str(ne))
 
-    return transaction
+#     return transaction
 
 
 @router.patch("/{portfolio_id}/transactions/{transaction_id}")

@@ -40,10 +40,11 @@ class CryptoPortfolioTransactions(BaseModel):
     crypto: CryptoBaseSchema
     profit_loss: Optional[float] = None
     profit_loss_percentage: Optional[float] = None
+    description: Optional[str] = None
 
 
 class CryptoPortfolioTransactionDetail(CryptoPortfolioTransactions):
-    description: Optional[str] = None
+    pass
 
 
 class CryptoPortfolioWatched(BaseModel):

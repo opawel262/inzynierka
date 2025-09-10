@@ -450,6 +450,9 @@ class CryptoTransaction(BaseTransaction):
     def profit_loss(self):
         current_value = self.amount * self.crypto.price
         invested_value = self.amount * self.price_per_unit
+        if self.transaction_type.lower() == "sell":
+            invested_value = -invested_value
+
         return current_value - invested_value
 
     @property
