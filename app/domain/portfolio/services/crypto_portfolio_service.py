@@ -84,7 +84,9 @@ class CryptoPortfolioService:
         if not watched_crypto:
             raise NotFoundError("Kryptowaluta nie jest obserwowana w tym portfelu")
 
-        self.delete_all_transactions_in_portfolio(portfolio_id, crypto=crypto)
+        self.delete_all_transactions_in_portfolio(
+            portfolio_id, crypto=crypto, avoid_non_found=True
+        )
 
         return self.repository.delete_watched_crypto_from_portfolio(watched_crypto)
 
@@ -92,10 +94,12 @@ class CryptoPortfolioService:
         crypto_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=True
         )
-
+        for crypto in crypto_portfolio.watched_cryptos:
+            self.delete_all_transactions_in_portfolio(
+                portfolio_id, crypto=crypto.crypto, avoid_non_found=True
+            )
         if not self.repository.delete_all_watched_cryptos_in_portfolio(portfolio_id):
             raise NotFoundError("Brak obserwowanych kryptowalut w tym portfelu")
-
         return True
 
     def create_transaction_in_portfolio(
@@ -269,7 +273,7 @@ class CryptoPortfolioService:
         return True
 
     def delete_all_transactions_in_portfolio(
-        self, portfolio_id: str, crypto: Crypto = None
+        self, portfolio_id: str, crypto: Crypto = None, avoid_non_found: bool = False
     ):
         crypto_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=True
@@ -286,14 +290,16 @@ class CryptoPortfolioService:
         transactions = self.repository.get_all_transactions_in_crypto_portfolio(
             portfolio_id, crypto=crypto
         )
-        if not self.repository.delete_all_transactions_in_crypto_portfolio(
+        if not avoid_non_found and len(transactions) == 0:
+            raise NotFoundError("Brak transakcji w tym portfelu")
+
+        self.repository.delete_all_transactions_in_crypto_portfolio(
             portfolio_id, crypto=crypto
-        ):
-            raise NotFoundError(
-                "Brak transakcji w tym portfelu"
-                if crypto is None
-                else f"Brak transakcji dla kryptowaluty {crypto.symbol} w tym portfelu"
-            )
+        )
+        print(
+            "usunelo sie wszystkie transakcje z kryptowaluty ",
+            crypto.symbol if crypto else "wszystkich kryptowalut",
+        )
 
         return True
 

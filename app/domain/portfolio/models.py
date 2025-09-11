@@ -137,42 +137,31 @@ class CryptoPortfolio(BasePortfolio):
             tx.amount * tx.price_per_unit
             for tx in self.crypto_transactions
             if tx.transaction_type.lower() == "buy"
-        ) - sum(
-            tx.amount * tx.price_per_unit
-            for tx in self.crypto_transactions
-            if tx.transaction_type.lower() == "sell"
         )
 
     @property
     def profit_loss(self):
-        total_current_value = sum(
-            tx.amount * tx.crypto.price for tx in self.crypto_transactions
+        return sum(
+            [watched_crypto.profit_loss for watched_crypto in self.watched_cryptos]
         )
-        return total_current_value - self.total_investment
 
     @property
     def profit_loss_percentage(self):
-        if self.total_investment == 0:
+        if self.current_value <= 0:
             return 0
-        return (self.profit_loss / self.total_investment) * 100
+        return (self.profit_loss / self.current_value) * 100
 
     @property
     def profit_loss_24h(self):
-        total_24h_change = 0
-        for tx in self.crypto_transactions:
-            if tx.crypto and tx.crypto.price_change_percentage_24h is not None:
-                total_24h_change += (
-                    2
-                    * (tx.crypto.price_change_percentage_24h / 100)
-                    * (tx.amount * tx.price_per_unit)
-                )
-        return round(total_24h_change, 2)
+        return sum(
+            [watched_crypto.profit_loss_24h for watched_crypto in self.watched_cryptos]
+        )
 
     @property
     def percentage_profit_loss_24h(self):
-        if self.total_investment == 0:
+        if self.current_value <= 0:
             return 0
-        return round((self.profit_loss_24h / self.total_investment) * 100, 2)
+        return round((self.profit_loss_24h / self.current_value) * 100, 2)
 
     @property
     def current_value(self):
@@ -448,19 +437,20 @@ class CryptoTransaction(BaseTransaction):
 
     @property
     def profit_loss(self):
+        if self.transaction_type.lower() == "sell":
+            return None
         current_value = self.amount * self.crypto.price
         invested_value = self.amount * self.price_per_unit
-        if self.transaction_type.lower() == "sell":
-            invested_value = -invested_value
-
-        return current_value - invested_value
+        return round(current_value - invested_value, 2)
 
     @property
     def profit_loss_percentage(self):
+        if self.transaction_type.lower() == "sell":
+            return None
         invested_value = self.amount * self.price_per_unit
         if invested_value == 0:
             return 0
-        return (self.profit_loss / invested_value) * 100
+        return round((self.profit_loss / invested_value) * 100, 2)
 
 
 ### HISTORICAL PRICES ###
@@ -515,22 +505,25 @@ class WatchedCryptoInPortfolio(Base):
             tx.amount * tx.price_per_unit
             for tx in self.portfolio.crypto_transactions
             if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "buy"
-        ) - sum(
-            tx.amount * tx.price_per_unit
-            for tx in self.portfolio.crypto_transactions
-            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "sell"
         )
 
     @property
     def avg_buy_price(self):
-        total_amount = sum(
-            tx.amount
+        total_cost = sum(
+            tx.amount * tx.price_per_unit
             for tx in self.portfolio.crypto_transactions
             if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "buy"
         )
-        if total_amount == 0:
+        total_proceeds = sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.portfolio.crypto_transactions
+            if tx.crypto_id == self.crypto_id and tx.transaction_type.lower() == "sell"
+        )
+        holdings = self.holdings
+        if holdings == 0:
             return 0
-        return self.total_invested / total_amount
+        avg_net_cost = (total_cost - total_proceeds) / holdings
+        return avg_net_cost
 
     @property
     def holdings(self):
@@ -547,10 +540,9 @@ class WatchedCryptoInPortfolio(Base):
     @property
     def profit_loss_24h(self):
         if self.crypto and self.crypto.price_change_percentage_24h is not None:
+            # Calculate profit/loss for 24h based on holdings and price change
             return round(
-                2
-                * (self.crypto.price_change_percentage_24h / 100)
-                * self.total_invested,
+                (self.crypto.price_change_percentage_24h / 100) * self.current_value,
                 2,
             )
         return 0
@@ -559,20 +551,32 @@ class WatchedCryptoInPortfolio(Base):
     def percentage_profit_loss_24h(self):
         if self.total_invested == 0:
             return 0
-        return round((self.profit_loss_24h / self.total_invested) * 100, 2)
+        return round((self.profit_loss_24h / self.current_value) * 100, 2)
 
     @property
     def profit_loss(self):
         if self.crypto:
-            current_value = self.holdings * self.crypto.price
-            return current_value - self.total_invested
+            total_bought = sum(
+                tx.amount * tx.price_per_unit
+                for tx in self.portfolio.crypto_transactions
+                if tx.crypto_id == self.crypto_id
+                and tx.transaction_type.lower() == "buy"
+            )
+            total_sold = sum(
+                tx.amount * tx.price_per_unit
+                for tx in self.portfolio.crypto_transactions
+                if tx.crypto_id == self.crypto_id
+                and tx.transaction_type.lower() == "sell"
+            )
+            profit = total_sold - total_bought + self.current_value
+            return profit
         return 0
 
     @property
     def profit_loss_percentage(self):
         if self.total_invested == 0:
             return 0
-        return (self.profit_loss / self.total_invested) * 100
+        return (self.profit_loss / self.current_value) * 100
 
     @property
     def current_value(self):
