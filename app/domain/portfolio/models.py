@@ -133,16 +133,22 @@ class CryptoPortfolio(BasePortfolio):
 
     @property
     def total_investment(self):
-        return sum(
-            tx.amount * tx.price_per_unit
-            for tx in self.crypto_transactions
-            if tx.transaction_type.lower() == "buy"
+        return round(
+            sum(
+                tx.amount * tx.price_per_unit
+                for tx in self.crypto_transactions
+                if tx.transaction_type.lower() == "buy"
+            ),
+            2,
         )
 
     @property
     def profit_loss(self):
-        return sum(
-            [watched_crypto.profit_loss for watched_crypto in self.watched_cryptos]
+        return round(
+            sum(
+                [watched_crypto.profit_loss for watched_crypto in self.watched_cryptos]
+            ),
+            2,
         )
 
     @property
@@ -153,8 +159,14 @@ class CryptoPortfolio(BasePortfolio):
 
     @property
     def profit_loss_24h(self):
-        return sum(
-            [watched_crypto.profit_loss_24h for watched_crypto in self.watched_cryptos]
+        return round(
+            sum(
+                [
+                    watched_crypto.profit_loss_24h
+                    for watched_crypto in self.watched_cryptos
+                ]
+            ),
+            2,
         )
 
     @property
@@ -165,148 +177,125 @@ class CryptoPortfolio(BasePortfolio):
 
     @property
     def current_value(self):
-        return sum(
-            tx.amount * tx.crypto.price
-            for tx in self.crypto_transactions
-            if tx.transaction_type == "buy"
-        ) - sum(
-            tx.amount * tx.crypto.price
-            for tx in self.crypto_transactions
-            if tx.transaction_type == "sell"
+        return round(
+            sum(
+                tx.amount * tx.crypto.price
+                for tx in self.crypto_transactions
+                if tx.transaction_type == "buy"
+            )
+            - sum(
+                tx.amount * tx.crypto.price
+                for tx in self.crypto_transactions
+                if tx.transaction_type == "sell"
+            ),
+            2,
         )
 
     @property
     def cryptos_percentage_holdings(self):
-        holdings = {}
-        total_value = sum(
-            tx.amount * tx.price_per_unit
-            for tx in self.crypto_transactions
-            if tx.transaction_type.lower() == "buy"
-        ) - sum(
-            tx.amount * tx.price_per_unit
-            for tx in self.crypto_transactions
-            if tx.transaction_type.lower() == "sell"
-        )
+        # Use watched_cryptos and their current_value
+        values = {
+            wc.crypto.symbol: wc.current_value
+            for wc in self.watched_cryptos
+            if wc.crypto
+        }
+        total_value = sum(values.values())
         if total_value == 0:
-            return holdings
-        for tx in self.crypto_transactions:
-            crypto_symbol = tx.crypto.symbol if tx.crypto else "Unknown"
-            if crypto_symbol not in holdings:
-                holdings[crypto_symbol] = 0
-            if tx.transaction_type.lower() == "buy":
-                holdings[crypto_symbol] += tx.amount * tx.price_per_unit
-            elif tx.transaction_type.lower() == "sell":
-                holdings[crypto_symbol] -= tx.amount * tx.price_per_unit
-        sorted_holdings = sorted(holdings.items(), key=lambda x: x[1], reverse=True)
+            return {}
+
+        sorted_values = sorted(values.items(), key=lambda x: x[1], reverse=True)
         result = {}
         other_sum = 0
-        for idx, (symbol, value) in enumerate(sorted_holdings):
+        for idx, (symbol, value) in enumerate(sorted_values):
             percent = (value / total_value) * 100
             if idx < 6:
-                result[symbol] = percent
+                result[symbol] = round(percent, 2)
             else:
                 other_sum += percent
         if other_sum > 0:
-            result["Other"] = other_sum
+            result["Other"] = round(other_sum, 2)
+        print(result)
         return result
 
     @property
     def historical_value_7d(self):
-        interval_hours = 6
+        interval_hours = 12
         now = datetime.utcnow()
         start_time = now - timedelta(days=7)
         time_points = [
             start_time + timedelta(hours=i * interval_hours)
             for i in range(int(7 * 24 / interval_hours) + 1)
         ]
+        results = []
+        sorted_crypto_transactions = sorted(
+            self.crypto_transactions, key=lambda tx: tx.transaction_date
+        )
 
-        # Prepare transactions grouped by crypto
-        transactions_by_crypto = {}
-        for tx in self.crypto_transactions:
-            transactions_by_crypto.setdefault(tx.crypto_id, []).append(tx)
-
-        # Prepare historical prices for each crypto
-        historical_prices_by_crypto = {}
-        for watched in self.watched_cryptos:
-            crypto = watched.crypto
-            prices = {
-                price.date.replace(minute=0, second=0, microsecond=0): price.close_price
-                for price in crypto.historical_prices
-                if price.period == "7d" and price.date >= start_time
-            }
-            historical_prices_by_crypto[crypto.id] = prices
-
-        result = []
-        for point in time_points:
+        for time_point in time_points:
             total_value = 0
-            for watched in self.watched_cryptos:
-                crypto = watched.crypto
-                # Find price at this time point, fallback to current price if not found
-                price = historical_prices_by_crypto.get(crypto.id, {}).get(
-                    point.replace(minute=0, second=0, microsecond=0), crypto.price
-                )
-                # Calculate holdings up to this time point
-                holdings = 0
-                for tx in transactions_by_crypto.get(crypto.id, []):
-                    if tx.transaction_date <= point:
-                        if tx.transaction_type.lower() == "buy":
-                            holdings += tx.amount
-                        elif tx.transaction_type.lower() == "sell":
-                            holdings -= tx.amount
-                total_value += holdings * price
-            result.append({"date": point, "value": total_value})
-        return result
+            for transaction in sorted_crypto_transactions:
+                if transaction.transaction_date <= time_point:
+                    price_at_time = None
+                    if transaction.crypto and transaction.crypto.historical_prices:
+                        for historical_price in transaction.crypto.historical_prices:
+                            if (
+                                historical_price.period == "1w"
+                                and historical_price.date <= time_point
+                            ):
+                                price_at_time = historical_price.close_price
+                    # Jeśli nie znaleziono historycznej ceny, użyj aktualnej ceny
+                    if price_at_time is None and transaction.crypto:
+                        price_at_time = transaction.crypto.price
+                    if price_at_time is not None:
+                        if transaction.transaction_type.lower() == "buy":
+                            total_value += transaction.amount * price_at_time
+                        elif transaction.transaction_type.lower() == "sell":
+                            total_value -= transaction.amount * price_at_time
+
+            results.append({"date": time_point, "value": round(total_value, 2)})
+        return results
 
     @property
     def historical_value_1m(self):
-        interval_hours = 12
+        interval_hours = 24
         now = datetime.utcnow()
         start_time = now - timedelta(days=30)
         time_points = [
             start_time + timedelta(hours=i * interval_hours)
             for i in range(int(30 * 24 / interval_hours) + 1)
         ]
+        results = []
+        sorted_crypto_transactions = sorted(
+            self.crypto_transactions, key=lambda tx: tx.transaction_date
+        )
 
-        # Prepare transactions grouped by crypto
-        transactions_by_crypto = {}
-        for tx in self.crypto_transactions:
-            transactions_by_crypto.setdefault(tx.crypto_id, []).append(tx)
-
-        # Prepare historical prices for each crypto
-        historical_prices_by_crypto = {}
-        for watched in self.watched_cryptos:
-            crypto = watched.crypto
-            prices = {
-                price.date.replace(minute=0, second=0, microsecond=0): price.close_price
-                for price in crypto.historical_prices
-                if price.period == "1m" and price.date >= start_time
-            }
-            historical_prices_by_crypto[crypto.id] = prices
-
-        result = []
-        for point in time_points:
+        for time_point in time_points:
             total_value = 0
-            for watched in self.watched_cryptos:
-                crypto = watched.crypto
-                # Find price at this time point, fallback to current price if not found
-                price = historical_prices_by_crypto.get(crypto.id, {}).get(
-                    point.replace(minute=0, second=0, microsecond=0), crypto.price
-                )
-                # Calculate holdings up to this time point
-                holdings = 0
-                for tx in transactions_by_crypto.get(crypto.id, []):
-                    if tx.transaction_date <= point:
-                        if tx.transaction_type.lower() == "buy":
-                            holdings += tx.amount
-                        elif tx.transaction_type.lower() == "sell":
-                            holdings -= tx.amount
-                total_value += holdings * price
-            result.append({"date": point, "value": total_value})
-        return result
+            for transaction in sorted_crypto_transactions:
+                if transaction.transaction_date <= time_point:
+                    price_at_time = None
+                    if transaction.crypto and transaction.crypto.historical_prices:
+                        for historical_price in transaction.crypto.historical_prices:
+                            if (
+                                historical_price.period == "1m"
+                                and historical_price.date <= time_point
+                            ):
+                                price_at_time = historical_price.close_price
+                    # Jeśli nie znaleziono historycznej ceny, użyj aktualnej ceny
+                    if price_at_time is None and transaction.crypto:
+                        price_at_time = transaction.crypto.price
+                    if price_at_time is not None:
+                        if transaction.transaction_type.lower() == "buy":
+                            total_value += transaction.amount * price_at_time
+                        elif transaction.transaction_type.lower() == "sell":
+                            total_value -= transaction.amount * price_at_time
+
+            results.append({"date": time_point, "value": round(total_value, 2)})
+        return results
 
     @property
     def historical_value_1y(self):
-        interval_days = 7
+        interval_days = 14
         now = datetime.utcnow()
         start_time = now - timedelta(days=365)
         time_points = [
@@ -314,45 +303,34 @@ class CryptoPortfolio(BasePortfolio):
             for i in range(int(365 / interval_days) + 1)
         ]
 
-        # Prepare transactions grouped by crypto
-        transactions_by_crypto = {}
-        for tx in self.crypto_transactions:
-            transactions_by_crypto.setdefault(tx.crypto_id, []).append(tx)
+        results = []
+        sorted_crypto_transactions = sorted(
+            self.crypto_transactions, key=lambda tx: tx.transaction_date
+        )
 
-        # Prepare historical prices for each crypto
-        historical_prices_by_crypto = {}
-        for watched in self.watched_cryptos:
-            crypto = watched.crypto
-            prices = {
-                price.date.replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                ): price.close_price
-                for price in crypto.historical_prices
-                if price.period == "1y" and price.date >= start_time
-            }
-            historical_prices_by_crypto[crypto.id] = prices
-
-        result = []
-        for point in time_points:
+        for time_point in time_points:
             total_value = 0
-            for watched in self.watched_cryptos:
-                crypto = watched.crypto
-                # Find price at this time point, fallback to current price if not found
-                price = historical_prices_by_crypto.get(crypto.id, {}).get(
-                    point.replace(hour=0, minute=0, second=0, microsecond=0),
-                    crypto.price,
-                )
-                # Calculate holdings up to this time point
-                holdings = 0
-                for tx in transactions_by_crypto.get(crypto.id, []):
-                    if tx.transaction_date <= point:
-                        if tx.transaction_type.lower() == "buy":
-                            holdings += tx.amount
-                        elif tx.transaction_type.lower() == "sell":
-                            holdings -= tx.amount
-                total_value += holdings * price
-            result.append({"date": point, "value": total_value})
-        return result
+            for transaction in sorted_crypto_transactions:
+                if transaction.transaction_date <= time_point:
+                    price_at_time = None
+                    if transaction.crypto and transaction.crypto.historical_prices:
+                        for historical_price in transaction.crypto.historical_prices:
+                            if (
+                                historical_price.period == "1y"
+                                and historical_price.date <= time_point
+                            ):
+                                price_at_time = historical_price.close_price
+                    # Jeśli nie znaleziono historycznej ceny, użyj aktualnej ceny
+                    if price_at_time is None and transaction.crypto:
+                        price_at_time = transaction.crypto.price
+                    if price_at_time is not None:
+                        if transaction.transaction_type.lower() == "buy":
+                            total_value += transaction.amount * price_at_time
+                        elif transaction.transaction_type.lower() == "sell":
+                            total_value -= transaction.amount * price_at_time
+
+            results.append({"date": time_point, "value": round(total_value, 2)})
+        return results
 
 
 ### ASSETS ###

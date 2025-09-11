@@ -142,18 +142,22 @@ class CryptoPortfolioService:
             total_bought = sum(
                 t.amount
                 for t in transactions
-                if t.crypto_id == crypto_id and t.transaction_type == "buy"
+                if t.crypto_id == crypto_id
+                and t.transaction_type == "buy"
+                and t.transaction_date <= transaction_data["transaction_date"]
             )
             total_sold = sum(
                 t.amount
                 for t in transactions
-                if t.crypto_id == crypto_id and t.transaction_type == "sell"
+                if t.crypto_id == crypto_id
+                and t.transaction_type == "sell"
+                and t.transaction_date <= transaction_data["transaction_date"]
             )
             current_amount = total_bought - total_sold
 
             if transaction_data["amount"] > current_amount:
                 raise BadRequestError(
-                    "Nie można sprzedać więcej niż posiadasz w portfelu"
+                    "Nie można sprzedać więcej niż posiadasz w portfelu w danym momencie czasu"
                 )
         return self.repository.create_transaction_in_crypto_portfolio(transaction_data)
 
@@ -330,19 +334,70 @@ class CryptoPortfolioService:
             portfolio_summary["total_transactions"] += len(
                 portfolio.crypto_transactions
             )
-            cryptos_percentage_total_value = 0
             for key, value in portfolio.cryptos_percentage_holdings.items():
                 if key in portfolio_summary["cryptos_percentage_holdings"]:
                     portfolio_summary["cryptos_percentage_holdings"][key] += value
                 else:
                     portfolio_summary["cryptos_percentage_holdings"][key] = value
-                cryptos_percentage_total_value += value
 
-            for key, value in portfolio.cryptos_percentage_holdings.items():
-                portfolio_summary["cryptos_percentage_holdings"][key] = (
-                    value / cryptos_percentage_total_value * 100
-                )
+            # Calculate percentage holdings after accumulating all values
+            total_crypto_value = sum(
+                portfolio_summary["cryptos_percentage_holdings"].values()
+            )
+            if total_crypto_value > 0:
+                for key in portfolio_summary["cryptos_percentage_holdings"]:
+                    portfolio_summary["cryptos_percentage_holdings"][key] = (
+                        portfolio_summary["cryptos_percentage_holdings"][key]
+                        / total_crypto_value
+                        * 100
+                    )
+            holdings = portfolio_summary["cryptos_percentage_holdings"]
+            sorted_keys = sorted(holdings, key=lambda k: holdings[k], reverse=True)
+            top_keys = sorted_keys[:5]
+            other_keys = sorted_keys[5:]
+            other_sum = sum(holdings[k] for k in other_keys)
+            new_holdings = {k: round(holdings[k], 2) for k in top_keys}
+            if other_sum > 0:
+                new_holdings["Other"] = round(other_sum, 2)
+            portfolio_summary["cryptos_percentage_holdings"] = new_holdings
+            # Aggregate historical values for 7d, 1m, 1y
+            for idx, historical_value_7 in enumerate(portfolio.historical_value_7d):
+                if len(portfolio_summary["historical_value_7d"]) <= idx:
+                    portfolio_summary["historical_value_7d"].append(
+                        {
+                            "date": historical_value_7["date"],
+                            "value": round(historical_value_7["value"], 2),
+                        }
+                    )
+                else:
+                    portfolio_summary["historical_value_7d"][idx]["value"] += round(
+                        historical_value_7["value"], 2
+                    )
 
-            # for historical_value in portfolio.historical_value_7d:
+            for idx, historical_value_1m in enumerate(portfolio.historical_value_1m):
+                if len(portfolio_summary["historical_value_1m"]) <= idx:
+                    portfolio_summary["historical_value_1m"].append(
+                        {
+                            "date": historical_value_1m["date"],
+                            "value": round(historical_value_1m["value"], 2),
+                        }
+                    )
+                else:
+                    portfolio_summary["historical_value_1m"][idx]["value"] += round(
+                        historical_value_1m["value"], 2
+                    )
+
+            for idx, historical_value_1y in enumerate(portfolio.historical_value_1y):
+                if len(portfolio_summary["historical_value_1y"]) <= idx:
+                    portfolio_summary["historical_value_1y"].append(
+                        {
+                            "date": historical_value_1y["date"],
+                            "value": round(historical_value_1y["value"], 2),
+                        }
+                    )
+                else:
+                    portfolio_summary["historical_value_1y"][idx]["value"] += round(
+                        historical_value_1y["value"], 2
+                    )
 
         return portfolio_summary
