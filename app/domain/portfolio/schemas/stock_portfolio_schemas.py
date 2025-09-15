@@ -71,7 +71,7 @@ class StockPortfolioSchema(StockPortfolioCreateSchema):
     owner_id: UUID
     created_at: datetime
     updated_at: datetime
-    total_watched_stocks: int
+    total_watched: int
     total_transactions: int
     total_investment: float
     profit_loss: Optional[float] = None
@@ -91,7 +91,7 @@ class StockPortfolioUpdateSchema(StockPortfolioCreateSchema):
 
 class StockPortfolioDetailSchema(StockPortfolioSchema):
     watched_stocks: list[StockPortfolioWatched]
-    stocks_percentage_holdings: Optional[dict[str, float]] = None
+    holdings_percentage: Optional[dict[str, float]] = None
     historical_value_7d: Optional[list[dict[str, Any]]] = None
     historical_value_1m: Optional[list[dict[str, Any]]] = None
     historical_value_1y: Optional[list[dict[str, Any]]] = None

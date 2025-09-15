@@ -109,7 +109,7 @@ class StockPortfolio(BasePortfolio):
     )
 
     @property
-    def total_watched_stocks(self):
+    def total_watched(self):
         return len(self.watched_stocks)
 
     @property
@@ -172,7 +172,7 @@ class StockPortfolio(BasePortfolio):
         )
 
     @property
-    def stocks_percentage_holdings(self):
+    def holdings_percentage(self):
         # Use watched_stocks and their current_value
         values = {
             wc.stock.symbol: wc.current_value for wc in self.watched_stocks if wc.stock
@@ -187,12 +187,13 @@ class StockPortfolio(BasePortfolio):
         for idx, (symbol, value) in enumerate(sorted_values):
             percent = (value / total_value) * 100
             if idx < 6:
+                if percent == 0:
+                    continue
                 result[symbol] = round(percent, 2)
             else:
                 other_sum += percent
         if other_sum > 0:
             result["Other"] = round(other_sum, 2)
-        print(result)
         return result
 
     @property
@@ -326,7 +327,7 @@ class CryptoPortfolio(BasePortfolio):
     )
 
     @property
-    def total_watched_cryptos(self):
+    def total_watched(self):
         return len(self.watched_cryptos)
 
     @property
@@ -394,7 +395,7 @@ class CryptoPortfolio(BasePortfolio):
         )
 
     @property
-    def cryptos_percentage_holdings(self):
+    def holdings_percentage(self):
         # Use watched_cryptos and their current_value
         values = {
             wc.crypto.symbol: wc.current_value
@@ -411,12 +412,13 @@ class CryptoPortfolio(BasePortfolio):
         for idx, (symbol, value) in enumerate(sorted_values):
             percent = (value / total_value) * 100
             if idx < 6:
+                if percent == 0:
+                    continue
                 result[symbol] = round(percent, 2)
             else:
                 other_sum += percent
         if other_sum > 0:
             result["Other"] = round(other_sum, 2)
-        print(result)
         return result
 
     @property

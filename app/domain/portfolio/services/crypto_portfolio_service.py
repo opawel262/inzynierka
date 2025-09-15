@@ -300,10 +300,6 @@ class CryptoPortfolioService:
         self.repository.delete_all_transactions_in_crypto_portfolio(
             portfolio_id, crypto=crypto
         )
-        print(
-            "usunelo sie wszystkie transakcje z kryptowaluty ",
-            crypto.symbol if crypto else "wszystkich kryptowalut",
-        )
 
         return True
 
@@ -311,55 +307,58 @@ class CryptoPortfolioService:
         portfolios = self.repository.get_all_crypto_portfolios(self.user_id)
         portfolio_summary = {
             "total_investment": 0,
-            "total_current_value": 0,
+            "current_value": 0,
             "total_percentage_profit_loss_24h": 0,
             "total_profit_loss_24h": 0,
+            "total_profit_loss_percentage": 0,
             "total_profit_loss": 0,
             "total_portfolios": 0,
             "total_transactions": 0,
-            "cryptos_percentage_holdings": {},
+            "holdings_percentage": {},
             "historical_value_7d": [],
             "historical_value_1m": [],
             "historical_value_1y": [],
+            "top_gainer_24h": {},
         }
+        watched_cryptos = set()
         for portfolio in portfolios:
+            for watched_crypto in portfolio.watched_cryptos:
+                watched_cryptos.add(watched_crypto.crypto)
+
             portfolio_summary["total_investment"] += portfolio.total_investment
-            portfolio_summary["total_current_value"] += portfolio.current_value
-            portfolio_summary[
-                "total_percentage_profit_loss_24h"
-            ] += portfolio.percentage_profit_loss_24h
+            portfolio_summary["current_value"] += portfolio.current_value
             portfolio_summary["total_profit_loss_24h"] += portfolio.profit_loss_24h
             portfolio_summary["total_profit_loss"] += portfolio.profit_loss
             portfolio_summary["total_portfolios"] += 1
             portfolio_summary["total_transactions"] += len(
                 portfolio.crypto_transactions
             )
-            for key, value in portfolio.cryptos_percentage_holdings.items():
-                if key in portfolio_summary["cryptos_percentage_holdings"]:
-                    portfolio_summary["cryptos_percentage_holdings"][key] += value
+            for key, value in portfolio.holdings_percentage.items():
+                if key in portfolio_summary["holdings_percentage"]:
+                    portfolio_summary["holdings_percentage"][key] += value
                 else:
-                    portfolio_summary["cryptos_percentage_holdings"][key] = value
+                    portfolio_summary["holdings_percentage"][key] = value
 
             # Calculate percentage holdings after accumulating all values
-            total_crypto_value = sum(
-                portfolio_summary["cryptos_percentage_holdings"].values()
-            )
+            total_crypto_value = sum(portfolio_summary["holdings_percentage"].values())
             if total_crypto_value > 0:
-                for key in portfolio_summary["cryptos_percentage_holdings"]:
-                    portfolio_summary["cryptos_percentage_holdings"][key] = (
-                        portfolio_summary["cryptos_percentage_holdings"][key]
+                for key in portfolio_summary["holdings_percentage"]:
+                    portfolio_summary["holdings_percentage"][key] = (
+                        portfolio_summary["holdings_percentage"][key]
                         / total_crypto_value
                         * 100
                     )
-            holdings = portfolio_summary["cryptos_percentage_holdings"]
+            holdings = portfolio_summary["holdings_percentage"]
             sorted_keys = sorted(holdings, key=lambda k: holdings[k], reverse=True)
             top_keys = sorted_keys[:5]
             other_keys = sorted_keys[5:]
             other_sum = sum(holdings[k] for k in other_keys)
-            new_holdings = {k: round(holdings[k], 2) for k in top_keys}
+            new_holdings = {
+                k: round(holdings[k], 2) for k in top_keys if round(holdings[k], 2) > 0
+            }
             if other_sum > 0:
                 new_holdings["Other"] = round(other_sum, 2)
-            portfolio_summary["cryptos_percentage_holdings"] = new_holdings
+            portfolio_summary["holdings_percentage"] = new_holdings
             # Aggregate historical values for 7d, 1m, 1y
             for idx, historical_value_7 in enumerate(portfolio.historical_value_7d):
                 if len(portfolio_summary["historical_value_7d"]) <= idx:
@@ -399,5 +398,38 @@ class CryptoPortfolioService:
                     portfolio_summary["historical_value_1y"][idx]["value"] += round(
                         historical_value_1y["value"], 2
                     )
+
+        top_gainer_24h_crypto = max(
+            watched_cryptos,
+            key=lambda c: (
+                c.price_change_percentage_24h
+                if c.price_change_percentage_24h is not None
+                else 0
+            ),
+        )
+        portfolio_summary["top_gainer_24h"] = {
+            "symbol": top_gainer_24h_crypto.symbol,
+            "icon": top_gainer_24h_crypto.icon,
+            "name": top_gainer_24h_crypto.name,
+            "price": top_gainer_24h_crypto.price,
+            "price_change_percentage_24h": top_gainer_24h_crypto.price_change_percentage_24h,
+        }
+        if portfolio_summary["current_value"] > 0:
+            portfolio_summary["total_percentage_profit_loss_24h"] = round(
+                (
+                    portfolio_summary["total_profit_loss_24h"]
+                    / portfolio_summary["current_value"]
+                )
+                * 100,
+                2,
+            )
+            portfolio_summary["total_profit_loss_percentage"] = round(
+                (
+                    portfolio_summary["total_profit_loss"]
+                    / portfolio_summary["current_value"]
+                )
+                * 100,
+                2,
+            )
 
         return portfolio_summary
