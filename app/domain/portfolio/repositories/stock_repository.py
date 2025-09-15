@@ -86,6 +86,20 @@ class StockRepository:
             .all()
         )
 
+    def get_stock_historical_prices_by_symbol_period_date(
+        self, symbol: str, period: str, date: str
+    ) -> List[StockHistoricalPrice]:
+        return (
+            self.db.query(StockHistoricalPrice)
+            .join(Stock)
+            .filter(
+                Stock.symbol == symbol,
+                StockHistoricalPrice.date == date,
+                StockHistoricalPrice.period == period,
+            )
+            .first()
+        )
+
     def get_stock_historical_price_by_symbol_period_date(
         self, symbol: str, period: str, date: datetime
     ):
@@ -98,6 +112,19 @@ class StockRepository:
                 StockHistoricalPrice.date == date,
             )
             .first()
+        )
+
+    def get_stock_historical_prices_by_symbol_period(
+        self, symbol: str, period: str
+    ) -> List[StockHistoricalPrice]:
+        return (
+            self.db.query(StockHistoricalPrice)
+            .join(Stock)
+            .filter(
+                Stock.symbol == symbol,
+                StockHistoricalPrice.period == period,
+            )
+            .all()
         )
 
     def get_stock_historical_prices_by_symbol_period_from_to_date(
@@ -122,6 +149,20 @@ class StockRepository:
             .limit(limit)
             .all()
         )
+
+    def get_stocks_by_name_or_symbol_alike(self, name_or_symbol: str) -> List[Stock]:
+        return (
+            self.db.query(Stock)
+            .filter(
+                Stock.name.ilike(f"%{name_or_symbol}%")
+                | Stock.symbol.ilike(f"%{name_or_symbol}%")
+            )
+            .order_by(Stock.market_cap_rank.asc())
+            .all()
+        )
+
+    def get_stocks_biggest_market_cap(self, limit: int = 3) -> List[Stock] | None:
+        return self.db.query(Stock).order_by(Stock.market_cap.desc()).limit(limit).all()
 
     def get_stocks_biggest_gainers(self, limit: int = 3) -> List[Stock] | None:
         return (

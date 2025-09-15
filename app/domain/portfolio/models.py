@@ -108,6 +108,208 @@ class StockPortfolio(BasePortfolio):
         cascade="all, delete-orphan",
     )
 
+    @property
+    def total_watched_stocks(self):
+        return len(self.watched_stocks)
+
+    @property
+    def total_transactions(self):
+        return len(self.stock_transactions)
+
+    @property
+    def total_investment(self):
+        return round(
+            sum(
+                tx.amount * tx.price_per_unit
+                for tx in self.stock_transactions
+                if tx.transaction_type.lower() == "buy"
+            ),
+            2,
+        )
+
+    @property
+    def profit_loss(self):
+        return round(
+            sum([watched_stock.profit_loss for watched_stock in self.watched_stocks]),
+            2,
+        )
+
+    @property
+    def profit_loss_percentage(self):
+        if self.current_value <= 0:
+            return 0
+        return (self.profit_loss / self.current_value) * 100
+
+    @property
+    def profit_loss_24h(self):
+        return round(
+            sum(
+                [watched_stock.profit_loss_24h for watched_stock in self.watched_stocks]
+            ),
+            2,
+        )
+
+    @property
+    def percentage_profit_loss_24h(self):
+        if self.current_value <= 0:
+            return 0
+        return round((self.profit_loss_24h / self.current_value) * 100, 2)
+
+    @property
+    def current_value(self):
+        return round(
+            sum(
+                tx.amount * tx.stock.price
+                for tx in self.stock_transactions
+                if tx.transaction_type == "buy"
+            )
+            - sum(
+                tx.amount * tx.stock.price
+                for tx in self.stock_transactions
+                if tx.transaction_type == "sell"
+            ),
+            2,
+        )
+
+    @property
+    def stocks_percentage_holdings(self):
+        # Use watched_stocks and their current_value
+        values = {
+            wc.stock.symbol: wc.current_value for wc in self.watched_stocks if wc.stock
+        }
+        total_value = sum(values.values())
+        if total_value == 0:
+            return {}
+
+        sorted_values = sorted(values.items(), key=lambda x: x[1], reverse=True)
+        result = {}
+        other_sum = 0
+        for idx, (symbol, value) in enumerate(sorted_values):
+            percent = (value / total_value) * 100
+            if idx < 6:
+                result[symbol] = round(percent, 2)
+            else:
+                other_sum += percent
+        if other_sum > 0:
+            result["Other"] = round(other_sum, 2)
+        print(result)
+        return result
+
+    @property
+    def historical_value_7d(self):
+        interval_hours = 12
+        now = datetime.utcnow()
+        start_time = now - timedelta(days=7)
+        time_points = [
+            start_time + timedelta(hours=i * interval_hours)
+            for i in range(int(7 * 24 / interval_hours) + 1)
+        ]
+        results = []
+        sorted_stock_transactions = sorted(
+            self.stock_transactions, key=lambda tx: tx.transaction_date
+        )
+
+        for time_point in time_points:
+            total_value = 0
+            for transaction in sorted_stock_transactions:
+                if transaction.transaction_date <= time_point:
+                    price_at_time = None
+                    if transaction.stock and transaction.stock.historical_prices:
+                        for historical_price in transaction.stock.historical_prices:
+                            if (
+                                historical_price.period == "1w"
+                                and historical_price.date <= time_point
+                            ):
+                                price_at_time = historical_price.close_price
+                    # Jeśli nie znaleziono historycznej ceny, użyj aktualnej ceny
+                    if price_at_time is None and transaction.stock:
+                        price_at_time = transaction.stock.price
+                    if price_at_time is not None:
+                        if transaction.transaction_type.lower() == "buy":
+                            total_value += transaction.amount * price_at_time
+                        elif transaction.transaction_type.lower() == "sell":
+                            total_value -= transaction.amount * price_at_time
+
+            results.append({"date": time_point, "value": round(total_value, 2)})
+        return results
+
+    @property
+    def historical_value_1m(self):
+        interval_hours = 24
+        now = datetime.utcnow()
+        start_time = now - timedelta(days=30)
+        time_points = [
+            start_time + timedelta(hours=i * interval_hours)
+            for i in range(int(30 * 24 / interval_hours) + 1)
+        ]
+        results = []
+        sorted_stock_transactions = sorted(
+            self.stock_transactions, key=lambda tx: tx.transaction_date
+        )
+
+        for time_point in time_points:
+            total_value = 0
+            for transaction in sorted_stock_transactions:
+                if transaction.transaction_date <= time_point:
+                    price_at_time = None
+                    if transaction.stock and transaction.stock.historical_prices:
+                        for historical_price in transaction.stock.historical_prices:
+                            if (
+                                historical_price.period == "1m"
+                                and historical_price.date <= time_point
+                            ):
+                                price_at_time = historical_price.close_price
+                    # Jeśli nie znaleziono historycznej ceny, użyj aktualnej ceny
+                    if price_at_time is None and transaction.stock:
+                        price_at_time = transaction.stock.price
+                    if price_at_time is not None:
+                        if transaction.transaction_type.lower() == "buy":
+                            total_value += transaction.amount * price_at_time
+                        elif transaction.transaction_type.lower() == "sell":
+                            total_value -= transaction.amount * price_at_time
+
+            results.append({"date": time_point, "value": round(total_value, 2)})
+        return results
+
+    @property
+    def historical_value_1y(self):
+        interval_days = 14
+        now = datetime.utcnow()
+        start_time = now - timedelta(days=365)
+        time_points = [
+            start_time + timedelta(days=i * interval_days)
+            for i in range(int(365 / interval_days) + 1)
+        ]
+
+        results = []
+        sorted_stock_transactions = sorted(
+            self.stock_transactions, key=lambda tx: tx.transaction_date
+        )
+
+        for time_point in time_points:
+            total_value = 0
+            for transaction in sorted_stock_transactions:
+                if transaction.transaction_date <= time_point:
+                    price_at_time = None
+                    if transaction.stock and transaction.stock.historical_prices:
+                        for historical_price in transaction.stock.historical_prices:
+                            if (
+                                historical_price.period == "1y"
+                                and historical_price.date <= time_point
+                            ):
+                                price_at_time = historical_price.close_price
+                    # Jeśli nie znaleziono historycznej ceny, użyj aktualnej ceny
+                    if price_at_time is None and transaction.stock:
+                        price_at_time = transaction.stock.price
+                    if price_at_time is not None:
+                        if transaction.transaction_type.lower() == "buy":
+                            total_value += transaction.amount * price_at_time
+                        elif transaction.transaction_type.lower() == "sell":
+                            total_value -= transaction.amount * price_at_time
+
+            results.append({"date": time_point, "value": round(total_value, 2)})
+        return results
+
 
 # Portfolio for user to store crypto investments
 class CryptoPortfolio(BasePortfolio):
@@ -396,6 +598,23 @@ class StockTransaction(BaseTransaction):
     portfolio = relationship("StockPortfolio", back_populates="stock_transactions")
     stock = relationship("Stock", back_populates="transactions")
 
+    @property
+    def profit_loss(self):
+        if self.transaction_type.lower() == "sell":
+            return None
+        current_value = self.amount * self.crypto.price
+        invested_value = self.amount * self.price_per_unit
+        return round(current_value - invested_value, 2)
+
+    @property
+    def profit_loss_percentage(self):
+        if self.transaction_type.lower() == "sell":
+            return None
+        invested_value = self.amount * self.price_per_unit
+        if invested_value == 0:
+            return 0
+        return round((self.profit_loss / invested_value) * 100, 2)
+
 
 # Transaction for crypto investments
 class CryptoTransaction(BaseTransaction):
@@ -573,3 +792,87 @@ class WatchedStockInPortfolio(Base):
 
     portfolio = relationship("StockPortfolio", back_populates="watched_stocks")
     stock = relationship("Stock", back_populates="watched_in_portfolios")
+
+    @property
+    def total_invested(self):
+        return sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.portfolio.stock_transactions
+            if tx.stock_id == self.stock_id and tx.transaction_type.lower() == "buy"
+        )
+
+    @property
+    def avg_buy_price(self):
+        total_cost = sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.portfolio.stock_transactions
+            if tx.stock_id == self.stock_id and tx.transaction_type.lower() == "buy"
+        )
+        total_proceeds = sum(
+            tx.amount * tx.price_per_unit
+            for tx in self.portfolio.stock_transactions
+            if tx.stock_id == self.stock_id and tx.transaction_type.lower() == "sell"
+        )
+        holdings = self.holdings
+        if holdings == 0:
+            return 0
+        avg_net_cost = (total_cost - total_proceeds) / holdings
+        return avg_net_cost
+
+    @property
+    def holdings(self):
+        return sum(
+            tx.amount
+            for tx in self.portfolio.stock_transactions
+            if tx.stock_id == self.stock_id and tx.transaction_type.lower() == "buy"
+        ) - sum(
+            tx.amount
+            for tx in self.portfolio.stock_transactions
+            if tx.stock_id == self.stock_id and tx.transaction_type.lower() == "sell"
+        )
+
+    @property
+    def profit_loss_24h(self):
+        if self.stock and self.stock.price_change_percentage_24h is not None:
+            # Calculate profit/loss for 24h based on holdings and price change
+            return round(
+                (self.stock.price_change_percentage_24h / 100) * self.current_value,
+                2,
+            )
+        return 0
+
+    @property
+    def percentage_profit_loss_24h(self):
+        if self.total_invested == 0:
+            return 0
+        return round((self.profit_loss_24h / self.current_value) * 100, 2)
+
+    @property
+    def profit_loss(self):
+        if self.stock:
+            total_bought = sum(
+                tx.amount * tx.price_per_unit
+                for tx in self.portfolio.stock_transactions
+                if tx.stock_id == self.stock_id and tx.transaction_type.lower() == "buy"
+            )
+            total_sold = sum(
+                tx.amount * tx.price_per_unit
+                for tx in self.portfolio.stock_transactions
+                if tx.stock_id == self.stock_id
+                and tx.transaction_type.lower() == "sell"
+            )
+            profit = total_sold - total_bought + self.current_value
+            return profit
+        return 0
+
+    @property
+    def profit_loss_percentage(self):
+        if self.total_invested == 0:
+            return 0
+        return (self.profit_loss / self.current_value) * 100
+
+    @property
+    def current_value(self):
+        if self.stock:
+            return self.holdings * self.stock.price
+        return 0

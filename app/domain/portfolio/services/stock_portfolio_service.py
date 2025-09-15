@@ -1,45 +1,395 @@
-# from typing import List, Optional, Literal, Dict
-
-# from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
-# from sqlalchemy.orm import Session
-# from fastapi_pagination import Page, paginate
-
-# from app.api.deps import get_db
-# from app.core.utils import limiter
-# from app.core.config import settings
-# from app.domain.portfolio.repositories.stock_repository import StockRepository
-# from app.domain.portfolio.services.stock_service import StockService
-# from app.domain.portfolio.services.crypto_service import CryptoService
-# from app.domain.portfolio.repositories.crypto_repository import CryptoRepository
-# from app.domain.portfolio.repositories.currency_repository import (
-#     CurrencyPairRateRepository,
-# )
-# from app.domain.portfolio.services.currency_service import (
-#     CurrencyService,
-# )
-# from app.domain.portfolio.schemas import (
-#     FetcherStockGPWSchema,
-#     FetcherHistoricalStockRecordSchema,
-#     BasicStockSchema,
-#     BasicCryptoSchema,
-#     GeneralStockGPWSchema,
-#     PricePerformanceStockGPWSchema,
-#     PricePerformanceCryptochema,
-#     SymbolStockSchema,
-#     SymbolCryptoSchema,
-#     GlobalMarketPerformanceSchema,
-#     CurrencyPairRateSchema,
-#     CryptoSearchSchema,
-# )
-# from fastapi.responses import JSONResponse
-# from fastapi.encoders import jsonable_encoder
-
-# router = APIRouter(
-#     prefix="/portfolio/stocks/",
-#     tags=["Stock Portfolio"],
-# )
+from app.domain.portfolio.repositories.stock_portfolio_repository import (
+    StockPortfolioRepository,
+)
+from app.core.exceptions import UnauthorizedError, NotFoundError, BadRequestError
+from app.domain.portfolio.models import Stock
 
 
-# @router.get("/stocks", status_code=status.HTTP_200_OK)
-# @limiter.limit("1/second")
-# def get_s
+class StockPortfolioService:
+
+    def __init__(
+        self, stock_portfolio_repository: StockPortfolioRepository, user_id: str
+    ):
+        self.repository = stock_portfolio_repository
+        self.user_id = user_id
+
+    def get_all_portfolios(self):
+        return self.repository.get_all_stock_portfolios(self.user_id)
+
+    def create_portfolio(self, portfolio_data: dict):
+        portfolio_data["owner_id"] = self.user_id
+        return self.repository.create_stock_portfolio(portfolio_data)
+
+    def update_portfolio(self, portfolio_id: str, update_data: dict):
+        # Get the existing portfolio and check ownership
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+
+        # after validating, update the portfolio
+        stock_portfolio = self.repository.update_stock_portfolio(
+            stock_portfolio, update_data
+        )
+
+        return stock_portfolio
+
+    def delete_portfolio(self, portfolio_id: str):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+
+        self.repository.delete_stock_portfolio_by_id(portfolio_id)
+        return True
+
+    def delete_all_portfolios(self):
+        return self.repository.delete_all_stock_portfolios(self.user_id)
+
+    def get_portfolio_by_id(
+        self, portfolio_id: str, validate_permission_to_edit: bool = False
+    ):
+        stock_portfolio = self.repository.get_stock_portfolio_by_id(portfolio_id)
+        if not stock_portfolio:
+            raise NotFoundError("Nie znaleziono portfela")
+
+        if validate_permission_to_edit:
+            if str(stock_portfolio.owner_id) != str(self.user_id):
+                raise UnauthorizedError("Brak dostępu do portfela")
+
+        if stock_portfolio.is_public is False and str(stock_portfolio.owner_id) != str(
+            self.user_id
+        ):
+            raise UnauthorizedError("Brak dostępu do portfela")
+
+        return stock_portfolio
+
+    def add_watched_stock_to_portfolio(self, portfolio_id: str, stock: Stock):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+        if self.repository.get_watched_stock_in_portfolio_by_id(portfolio_id, stock.id):
+            raise BadRequestError("Akcja jest już obserwowana w tym portfelu")
+
+        return self.repository.add_watched_stock_to_portfolio(portfolio_id, stock)
+
+    def delete_watched_stock_from_portfolio(self, portfolio_id: str, stock: Stock):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+
+        watched_stock = self.repository.get_watched_stock_in_portfolio_by_id(
+            portfolio_id, stock.id
+        )
+        if not watched_stock:
+            raise NotFoundError("Akcja nie jest obserwowana w tym portfelu")
+
+        self.delete_all_transactions_in_portfolio(
+            portfolio_id, stock=stock, avoid_non_found=True
+        )
+
+        return self.repository.delete_watched_stock_from_portfolio(watched_stock)
+
+    def delete_all_watched_stocks_from_portfolio(self, portfolio_id: str):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+        for stock in stock_portfolio.watched_stocks:
+            self.delete_all_transactions_in_portfolio(
+                portfolio_id, stock=stock.stock, avoid_non_found=True
+            )
+        if not self.repository.delete_all_watched_stocks_in_portfolio(portfolio_id):
+            raise NotFoundError("Brak obserwowanych akcji w tym portfelu")
+        return True
+
+    def create_transaction_in_portfolio(
+        self, portfolio_id: str, transaction_data: dict
+    ):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+
+        if (
+            transaction_data.get("stock", None) is not None
+            and len(stock_portfolio.watched_stocks) > 0
+            and not any(
+                wc.stock_id == transaction_data["stock"].id
+                for wc in stock_portfolio.watched_stocks
+            )
+        ):
+            raise BadRequestError("Akcja nie jest obserwowana w tym portfelu")
+
+        if transaction_data["amount"] <= 0:
+            raise BadRequestError("Ilość musi być większa od 0")
+        if transaction_data["price_per_unit"] <= 0:
+            raise BadRequestError("Cena za jednostkę musi być większa od 0")
+        if transaction_data["transaction_type"] not in ["buy", "sell"]:
+            raise BadRequestError(
+                "Nieprawidłowy typ transakcji, musi być 'buy' lub 'sell'"
+            )
+
+        # Przypisz portfolio_id do danych transakcji
+        transaction_data["portfolio_id"] = portfolio_id
+
+        # Walidacja ilości przy sprzedaży
+        if transaction_data["transaction_type"] == "sell":
+            stock_id = transaction_data.get("stock").id
+            if not stock_id:
+                raise BadRequestError("Brak identyfikatora akcji w transakcji")
+
+            # Pobierz wszystkie transakcje dla tej akcji w portfelu
+            transactions = stock_portfolio.stock_transactions
+            total_bought = sum(
+                t.amount
+                for t in transactions
+                if t.stock_id == stock_id
+                and t.transaction_type == "buy"
+                and t.transaction_date <= transaction_data["transaction_date"]
+            )
+            total_sold = sum(
+                t.amount
+                for t in transactions
+                if t.stock_id == stock_id
+                and t.transaction_type == "sell"
+                and t.transaction_date <= transaction_data["transaction_date"]
+            )
+            current_amount = total_bought - total_sold
+
+            if transaction_data["amount"] > current_amount:
+                raise BadRequestError(
+                    "Nie można sprzedać więcej niż posiadasz w portfelu w danym momencie czasu"
+                )
+        return self.repository.create_transaction_in_stock_portfolio(transaction_data)
+
+    def get_transaction_in_portfolio(self, portfolio_id: str, transaction_id: str):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=False
+        )
+
+        transaction = self.repository.get_transaction_in_stock_portfolio_by_id(
+            portfolio_id, transaction_id
+        )
+
+        return transaction
+
+    def get_transactions_in_portfolio(self, portfolio_id: str, stock: Stock = None):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=False
+        )
+        if (
+            stock
+            and len(stock_portfolio.watched_stocks) > 0
+            and not any(
+                stock and wc.stock_id == stock.id
+                for wc in stock_portfolio.watched_stocks
+            )
+        ):
+            raise BadRequestError("Akcja nie jest obserwowana w tym portfelu")
+        transactions = self.repository.get_all_transactions_in_stock_portfolio(
+            portfolio_id, stock=stock
+        )
+
+        return transactions
+
+    def update_transaction_in_portfolio(
+        self, portfolio_id: str, transaction_id: str, update_data: dict
+    ):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+
+        if (
+            update_data.get("stock", None) is not None
+            and len(stock_portfolio.watched_stocks) > 0
+            and not any(
+                wc.stock_id == update_data["stock"].id
+                for wc in stock_portfolio.watched_stocks
+            )
+        ):
+            raise BadRequestError("Akcja nie jest obserwowana w tym portfelu")
+        transaction = self.repository.get_transaction_in_stock_portfolio_by_id(
+            portfolio_id, transaction_id
+        )
+        if not transaction:
+            raise NotFoundError("Nie znaleziono transakcji")
+        if update_data.get("amount") is not None and update_data["amount"] <= 0:
+            raise BadRequestError("Ilość musi być większa od 0")
+        if (
+            update_data.get("price_per_unit") is not None
+            and update_data["price_per_unit"] <= 0
+        ):
+            raise BadRequestError("Cena za jednostkę musi być większa od 0")
+        if update_data.get("transaction_type", None) is not None and update_data[
+            "transaction_type"
+        ] not in ["buy", "sell"]:
+            raise BadRequestError(
+                "Nieprawidłowy typ transakcji, musi być 'buy' lub 'sell'"
+            )
+
+        # Przypisz portfolio_id do danych transakcji
+        update_data["portfolio_id"] = portfolio_id
+
+        # Walidacja ilości przy sprzedaży
+        if (
+            update_data.get("transaction_type", None) is not None
+            and update_data["transaction_type"] == "sell"
+        ):
+            stock_id = update_data.get("stock").id
+            if not stock_id:
+                raise BadRequestError("Brak identyfikatora akcji w transakcji")
+
+            # Pobierz wszystkie transakcje dla tej akcji w portfelu
+            transactions = stock_portfolio.stock_transactions
+            total_bought = sum(
+                t.amount
+                for t in transactions
+                if t.stock_id == stock_id and t.transaction_type == "buy"
+            )
+            total_sold = sum(
+                t.amount
+                for t in transactions
+                if t.stock_id == stock_id and t.transaction_type == "sell"
+            )
+            current_amount = total_bought - total_sold
+
+            if update_data["amount"] > current_amount:
+                raise BadRequestError(
+                    "Nie można sprzedać więcej niż posiadasz w portfelu"
+                )
+        transaction = self.repository.update_transaction_in_stock_portfolio(
+            transaction, update_data
+        )
+
+        return transaction
+
+    def delete_transaction_in_portfolio(self, portfolio_id: str, transaction_id: str):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+
+        transaction = self.repository.get_transaction_in_stock_portfolio_by_id(
+            portfolio_id, transaction_id
+        )
+        if not transaction:
+            raise NotFoundError("Nie znaleziono transakcji")
+
+        self.repository.delete_transaction_in_stock_portfolio(transaction)
+        return True
+
+    def delete_all_transactions_in_portfolio(
+        self, portfolio_id: str, stock: Stock = None, avoid_non_found: bool = False
+    ):
+        stock_portfolio = self.get_portfolio_by_id(
+            portfolio_id, validate_permission_to_edit=True
+        )
+        if (
+            stock
+            and len(stock_portfolio.watched_stocks) > 0
+            and not any(
+                stock and wc.stock_id == stock.id
+                for wc in stock_portfolio.watched_stocks
+            )
+        ):
+            raise BadRequestError("Akcja nie jest obserwowana w tym portfelu")
+        transactions = self.repository.get_all_transactions_in_stock_portfolio(
+            portfolio_id, stock=stock
+        )
+        if not avoid_non_found and len(transactions) == 0:
+            raise NotFoundError("Brak transakcji w tym portfelu")
+
+        self.repository.delete_all_transactions_in_stock_portfolio(
+            portfolio_id, stock=stock
+        )
+
+        return True
+
+    def get_portfolios_summary(self):
+        portfolios = self.repository.get_all_stock_portfolios(self.user_id)
+        portfolio_summary = {
+            "total_investment": 0,
+            "total_current_value": 0,
+            "total_percentage_profit_loss_24h": 0,
+            "total_profit_loss_24h": 0,
+            "total_profit_loss": 0,
+            "total_portfolios": 0,
+            "total_transactions": 0,
+            "stocks_percentage_holdings": {},
+            "historical_value_7d": [],
+            "historical_value_1m": [],
+            "historical_value_1y": [],
+        }
+        for portfolio in portfolios:
+            portfolio_summary["total_investment"] += portfolio.total_investment
+            portfolio_summary["total_current_value"] += portfolio.current_value
+            portfolio_summary[
+                "total_percentage_profit_loss_24h"
+            ] += portfolio.percentage_profit_loss_24h
+            portfolio_summary["total_profit_loss_24h"] += portfolio.profit_loss_24h
+            portfolio_summary["total_profit_loss"] += portfolio.profit_loss
+            portfolio_summary["total_portfolios"] += 1
+            portfolio_summary["total_transactions"] += len(portfolio.stock_transactions)
+            for key, value in portfolio.stocks_percentage_holdings.items():
+                if key in portfolio_summary["stocks_percentage_holdings"]:
+                    portfolio_summary["stocks_percentage_holdings"][key] += value
+                else:
+                    portfolio_summary["stocks_percentage_holdings"][key] = value
+
+            # Calculate percentage holdings after accumulating all values
+            total_stock_value = sum(
+                portfolio_summary["stocks_percentage_holdings"].values()
+            )
+            if total_stock_value > 0:
+                for key in portfolio_summary["stocks_percentage_holdings"]:
+                    portfolio_summary["stocks_percentage_holdings"][key] = (
+                        portfolio_summary["stocks_percentage_holdings"][key]
+                        / total_stock_value
+                        * 100
+                    )
+            holdings = portfolio_summary["stocks_percentage_holdings"]
+            sorted_keys = sorted(holdings, key=lambda k: holdings[k], reverse=True)
+            top_keys = sorted_keys[:5]
+            other_keys = sorted_keys[5:]
+            other_sum = sum(holdings[k] for k in other_keys)
+            new_holdings = {k: round(holdings[k], 2) for k in top_keys}
+            if other_sum > 0:
+                new_holdings["Other"] = round(other_sum, 2)
+            portfolio_summary["stocks_percentage_holdings"] = new_holdings
+            # Aggregate historical values for 7d, 1m, 1y
+            for idx, historical_value_7 in enumerate(portfolio.historical_value_7d):
+                if len(portfolio_summary["historical_value_7d"]) <= idx:
+                    portfolio_summary["historical_value_7d"].append(
+                        {
+                            "date": historical_value_7["date"],
+                            "value": round(historical_value_7["value"], 2),
+                        }
+                    )
+                else:
+                    portfolio_summary["historical_value_7d"][idx]["value"] += round(
+                        historical_value_7["value"], 2
+                    )
+
+            for idx, historical_value_1m in enumerate(portfolio.historical_value_1m):
+                if len(portfolio_summary["historical_value_1m"]) <= idx:
+                    portfolio_summary["historical_value_1m"].append(
+                        {
+                            "date": historical_value_1m["date"],
+                            "value": round(historical_value_1m["value"], 2),
+                        }
+                    )
+                else:
+                    portfolio_summary["historical_value_1m"][idx]["value"] += round(
+                        historical_value_1m["value"], 2
+                    )
+
+            for idx, historical_value_1y in enumerate(portfolio.historical_value_1y):
+                if len(portfolio_summary["historical_value_1y"]) <= idx:
+                    portfolio_summary["historical_value_1y"].append(
+                        {
+                            "date": historical_value_1y["date"],
+                            "value": round(historical_value_1y["value"], 2),
+                        }
+                    )
+                else:
+                    portfolio_summary["historical_value_1y"][idx]["value"] += round(
+                        historical_value_1y["value"], 2
+                    )
+
+        return portfolio_summary
