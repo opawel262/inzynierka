@@ -315,15 +315,16 @@ class CryptoPortfolioService:
             "total_portfolios": 0,
             "total_transactions": 0,
             "holdings_percentage": {},
+            "top_gainer_24h": {},
             "historical_value_7d": [],
             "historical_value_1m": [],
             "historical_value_1y": [],
-            "top_gainer_24h": {},
         }
         watched_cryptos = set()
         for portfolio in portfolios:
             for watched_crypto in portfolio.watched_cryptos:
-                watched_cryptos.add(watched_crypto.crypto)
+                if watched_crypto.holdings > 0:
+                    watched_cryptos.add(watched_crypto.crypto)
 
             portfolio_summary["total_investment"] += portfolio.total_investment
             portfolio_summary["current_value"] += portfolio.current_value
@@ -398,22 +399,25 @@ class CryptoPortfolioService:
                     portfolio_summary["historical_value_1y"][idx]["value"] += round(
                         historical_value_1y["value"], 2
                     )
+        if len(watched_cryptos) > 0:
+            top_gainer_24h_crypto = max(
+                watched_cryptos,
+                key=lambda c: (
+                    c.price_change_percentage_24h
+                    if c.price_change_percentage_24h is not None
+                    else 0
+                ),
+            )
+            portfolio_summary["top_gainer_24h"] = {
+                "symbol": top_gainer_24h_crypto.symbol,
+                "icon": top_gainer_24h_crypto.icon,
+                "name": top_gainer_24h_crypto.name,
+                "price": top_gainer_24h_crypto.price,
+                "price_change_percentage_24h": top_gainer_24h_crypto.price_change_percentage_24h,
+            }
+        else:
+            portfolio_summary["top_gainer_24h"] = None
 
-        top_gainer_24h_crypto = max(
-            watched_cryptos,
-            key=lambda c: (
-                c.price_change_percentage_24h
-                if c.price_change_percentage_24h is not None
-                else 0
-            ),
-        )
-        portfolio_summary["top_gainer_24h"] = {
-            "symbol": top_gainer_24h_crypto.symbol,
-            "icon": top_gainer_24h_crypto.icon,
-            "name": top_gainer_24h_crypto.name,
-            "price": top_gainer_24h_crypto.price,
-            "price_change_percentage_24h": top_gainer_24h_crypto.price_change_percentage_24h,
-        }
         if portfolio_summary["current_value"] > 0:
             portfolio_summary["total_percentage_profit_loss_24h"] = round(
                 (

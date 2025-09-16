@@ -313,15 +313,16 @@ class StockPortfolioService:
             "total_portfolios": 0,
             "total_transactions": 0,
             "holdings_percentage": {},
+            "top_gainer_24h": {},
             "historical_value_7d": [],
             "historical_value_1m": [],
             "historical_value_1y": [],
-            "top_gainer_24h": {},
         }
         watched_stocks = set()
         for portfolio in portfolios:
             for watched_stock in portfolio.watched_stocks:
-                watched_stocks.add(watched_stock.stock)
+                if watched_stock.holdings > 0:
+                    watched_stocks.add(watched_stock.stock)
 
             portfolio_summary["total_investment"] += portfolio.total_investment
             portfolio_summary["current_value"] += portfolio.current_value
@@ -394,21 +395,24 @@ class StockPortfolioService:
                     portfolio_summary["historical_value_1y"][idx]["value"] += round(
                         historical_value_1y["value"], 2
                     )
+        if len(watched_stocks) > 0:
+            top_gainer_24h_stock = max(
+                watched_stocks,
+                key=lambda c: (
+                    c.price_change_percentage_24h
+                    if c.price_change_percentage_24h is not None
+                    else 0
+                ),
+            )
+            portfolio_summary["top_gainer_24h"] = {
+                "symbol": top_gainer_24h_stock.symbol,
+                "name": top_gainer_24h_stock.name,
+                "price": top_gainer_24h_stock.price,
+                "price_change_percentage_24h": top_gainer_24h_stock.price_change_percentage_24h,
+            }
+        else:
+            portfolio_summary["top_gainer_24h"] = None
 
-        top_gainer_24h_stock = max(
-            watched_stocks,
-            key=lambda c: (
-                c.price_change_percentage_24h
-                if c.price_change_percentage_24h is not None
-                else 0
-            ),
-        )
-        portfolio_summary["top_gainer_24h"] = {
-            "symbol": top_gainer_24h_stock.symbol,
-            "name": top_gainer_24h_stock.name,
-            "price": top_gainer_24h_stock.price,
-            "price_change_percentage_24h": top_gainer_24h_stock.price_change_percentage_24h,
-        }
         if portfolio_summary["current_value"] > 0:
             portfolio_summary["total_percentage_profit_loss_24h"] = round(
                 (
