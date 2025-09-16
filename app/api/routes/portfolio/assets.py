@@ -115,7 +115,7 @@ def get_market_global_performance(
 
 
 @router.get("/global-search", status_code=status.HTTP_200_OK)
-@limiter.limit("1/second")
+@limiter.limit("5/second")
 def get_global_search(
     request: Request,
     search: Optional[str] = Query(None, description="Search term for global assets"),
