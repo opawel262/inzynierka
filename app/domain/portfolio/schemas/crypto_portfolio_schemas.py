@@ -41,6 +41,8 @@ class CryptoPortfolioTransactions(BaseModel):
     profit_loss: Optional[float] = None
     profit_loss_percentage: Optional[float] = None
     description: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class CryptoPortfolioTransactionDetail(CryptoPortfolioTransactions):

@@ -25,6 +25,7 @@ class BudgetTransactionSchema(BaseModel):
 
 class BudgetTransactionCreateSchema(BudgetTransactionSchema):
     category_id: Optional[int] = None
+    transaction_date: datetime
 
 
 class BudgetTransactionUpdateSchema(BudgetTransactionSchema):
@@ -32,6 +33,7 @@ class BudgetTransactionUpdateSchema(BudgetTransactionSchema):
     transaction_type: Optional[Literal["+", "-"]] = None
     amount: Optional[float] = None
     category_id: Optional[int] = None
+    transaction_date: Optional[datetime] = None
 
 
 class BudgetTransactionDetailSchema(BudgetTransactionSchema):
@@ -40,6 +42,7 @@ class BudgetTransactionDetailSchema(BudgetTransactionSchema):
     updated_at: datetime
     budget_id: UUID
     category: Optional[BudgetTransactionCategoryDetailSchema] = None
+    transaction_date: datetime
 
 
 class BudgetSchema(BaseModel):

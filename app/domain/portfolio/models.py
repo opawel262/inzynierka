@@ -91,6 +91,12 @@ class BaseTransaction(Base):
     price_per_unit = Column(Float, nullable=False)
     transaction_date = Column(DateTime, default=datetime.utcnow)
     description = Column(String, nullable=True)
+    created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
+    updated_at = Column(
+        DateTime,
+        server_default=func.timezone("UTC", func.now()),
+        onupdate=func.timezone("UTC", func.now()),
+    )
 
 
 ### PORTFOLIOS ###
@@ -138,7 +144,7 @@ class StockPortfolio(BasePortfolio):
     def profit_loss_percentage(self):
         if self.current_value <= 0:
             return 0
-        return (self.profit_loss / self.current_value) * 100
+        return round((self.profit_loss / self.current_value) * 100, 2)
 
     @property
     def profit_loss_24h(self):
@@ -358,7 +364,7 @@ class CryptoPortfolio(BasePortfolio):
     def profit_loss_percentage(self):
         if self.current_value <= 0:
             return 0
-        return (self.profit_loss / self.current_value) * 100
+        return round((self.profit_loss / self.current_value) * 100, 2)
 
     @property
     def profit_loss_24h(self):
@@ -604,7 +610,7 @@ class StockTransaction(BaseTransaction):
     def profit_loss(self):
         if self.transaction_type.lower() == "sell":
             return None
-        current_value = self.amount * self.crypto.price
+        current_value = self.amount * self.stock.price
         invested_value = self.amount * self.price_per_unit
         return round(current_value - invested_value, 2)
 
@@ -775,7 +781,7 @@ class WatchedCryptoInPortfolio(Base):
     def profit_loss_percentage(self):
         if self.total_invested == 0:
             return 0
-        return (self.profit_loss / self.current_value) * 100
+        return round((self.profit_loss / self.current_value) * 100, 2)
 
     @property
     def current_value(self):
@@ -871,7 +877,7 @@ class WatchedStockInPortfolio(Base):
     def profit_loss_percentage(self):
         if self.total_invested == 0:
             return 0
-        return (self.profit_loss / self.current_value) * 100
+        return round((self.profit_loss / self.current_value) * 100, 2)
 
     @property
     def current_value(self):

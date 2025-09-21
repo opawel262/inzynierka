@@ -62,6 +62,7 @@ class BudgetTransaction(Base):
         server_default=func.timezone("UTC", func.now()),
         onupdate=func.timezone("UTC", func.now()),
     )
+    transaction_date = Column(DateTime, default=datetime.utcnow)
 
     budget = relationship("Budget", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")

@@ -324,7 +324,7 @@ class CryptoPortfolioService:
         for portfolio in portfolios:
             for watched_crypto in portfolio.watched_cryptos:
                 if watched_crypto.holdings > 0:
-                    watched_cryptos.add(watched_crypto.crypto)
+                    watched_cryptos.add(watched_crypto)
 
             portfolio_summary["total_investment"] += portfolio.total_investment
             portfolio_summary["current_value"] += portfolio.current_value
@@ -403,18 +403,83 @@ class CryptoPortfolioService:
             top_gainer_24h_crypto = max(
                 watched_cryptos,
                 key=lambda c: (
-                    c.price_change_percentage_24h
-                    if c.price_change_percentage_24h is not None
+                    c.crypto.price_change_percentage_24h
+                    if c.crypto.price_change_percentage_24h is not None
                     else 0
                 ),
             )
+
             portfolio_summary["top_gainer_24h"] = {
-                "symbol": top_gainer_24h_crypto.symbol,
-                "icon": top_gainer_24h_crypto.icon,
-                "name": top_gainer_24h_crypto.name,
-                "price": top_gainer_24h_crypto.price,
-                "price_change_percentage_24h": top_gainer_24h_crypto.price_change_percentage_24h,
+                "crypto": {
+                    "symbol": top_gainer_24h_crypto.crypto.symbol,
+                    "icon": top_gainer_24h_crypto.crypto.icon,
+                    "name": top_gainer_24h_crypto.crypto.name,
+                    "price": top_gainer_24h_crypto.crypto.price,
+                    "price_change_percentage_24h": top_gainer_24h_crypto.crypto.price_change_percentage_24h,
+                },
+                "percentage_profit_loss_24h": 0,
+                "profit_loss_24h": 0,
+                "profit_loss": 0,
+                "profit_loss_percentage": 0,
+                "current_value": 0,
+                "total_invested": 0,
+                "avg_buy_price": 0,
+                "holdings": 0,
+                "current_value": 0,
             }
+            for c in watched_cryptos:
+                if c.crypto.symbol == top_gainer_24h_crypto.crypto.symbol:
+                    portfolio_summary["top_gainer_24h"][
+                        "percentage_profit_loss_24h"
+                    ] = round(c.percentage_profit_loss_24h, 2)
+                    portfolio_summary["top_gainer_24h"]["profit_loss_24h"] += round(
+                        c.profit_loss_24h, 2
+                    )
+
+                    portfolio_summary["top_gainer_24h"]["current_value"] += round(
+                        c.current_value, 2
+                    )
+                    portfolio_summary["top_gainer_24h"]["total_invested"] += round(
+                        c.total_invested, 2
+                    )
+                    portfolio_summary["top_gainer_24h"]["holdings"] += round(
+                        c.holdings, 8
+                    )
+
+            # Normalize avg_buy_price for top_gainer_24h
+            holdings = portfolio_summary["top_gainer_24h"]["holdings"]
+            if holdings > 0:
+                # Weighted average buy price
+                avg_buy_price_sum = 0
+                for c in watched_cryptos:
+                    if (
+                        c.crypto.symbol == top_gainer_24h_crypto.crypto.symbol
+                        and c.holdings > 0
+                    ):
+                        avg_buy_price_sum += c.avg_buy_price * c.holdings
+                portfolio_summary["top_gainer_24h"]["avg_buy_price"] = round(
+                    avg_buy_price_sum / holdings, 2
+                )
+            else:
+                portfolio_summary["top_gainer_24h"]["avg_buy_price"] = 0
+            portfolio_summary["top_gainer_24h"]["profit_loss"] = round(
+                portfolio_summary["top_gainer_24h"]["current_value"]
+                - portfolio_summary["top_gainer_24h"]["total_invested"],
+                2,
+            )
+            if (
+                portfolio_summary["top_gainer_24h"]["total_invested"] > 0
+                and portfolio_summary["top_gainer_24h"]["current_value"] > 0
+            ):
+                portfolio_summary["top_gainer_24h"]["profit_loss_percentage"] = round(
+                    (
+                        portfolio_summary["top_gainer_24h"]["profit_loss"]
+                        / portfolio_summary["top_gainer_24h"]["total_invested"]
+                    )
+                    * 100,
+                    2,
+                )
+
         else:
             portfolio_summary["top_gainer_24h"] = None
 
