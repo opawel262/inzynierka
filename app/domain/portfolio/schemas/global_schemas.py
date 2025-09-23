@@ -39,3 +39,22 @@ class GlobalMarketPerformanceSchema(BaseModel):
 class GlobalSearchResultsSchema(BaseModel):
     stocks: List[StockSearchSchema]
     cryptos: List[CryptoSearchSchema]
+
+
+class StockConvertList(BaseModel):
+    symbol: str
+    name: str
+
+
+class CryptoConvertList(StockConvertList):
+    icon: str
+
+
+class CurrencyConvertList(StockConvertList):
+    pass
+
+
+class GlobalAssetsToConvert(BaseModel):
+    stocks: List[StockConvertList]
+    cryptos: List[CryptoConvertList]
+    currencies: List[CurrencyConvertList]

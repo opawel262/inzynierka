@@ -62,6 +62,24 @@ class StockPortfolioService:
 
         return stock_portfolio
 
+    def get_portfolios_holding_stock(self, stock: Stock):
+        portfolios = self.get_all_portfolios()
+        portfolios_holding_stock = []
+        for portfolio in portfolios:
+            in_portfolio = self.repository.get_watched_stock_in_portfolio_by_id(
+                portfolio.id, stock.id
+            )
+            portfolios_holding_stock.append(
+                {
+                    "id": portfolio.id,
+                    "title": portfolio.title,
+                    "color": portfolio.color,
+                    "stock_in_portfolio": in_portfolio is not None,
+                }
+            )
+
+        return portfolios_holding_stock
+
     def add_watched_stock_to_portfolio(self, portfolio_id: str, stock: Stock):
         stock_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=True

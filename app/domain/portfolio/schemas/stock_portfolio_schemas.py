@@ -12,6 +12,13 @@ class StockBaseSchema(StockSymbolSchema):
     price_change_percentage_24h: Optional[float] = None
 
 
+class StockInPortfolioBaseSchema(StockBaseSchema):
+    id: str
+    title: str
+    color: str
+    in_portfolio: Optional[bool] = True
+
+
 class StockPortfolioCreateTransaction(BaseModel):
     description: str
     transaction_type: str

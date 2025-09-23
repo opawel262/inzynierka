@@ -1,10 +1,10 @@
-from typing import List, Optional, Literal, Dict, Any
+from typing import List, Optional, Literal, Dict, Any, Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
 from sqlalchemy.orm import Session
 from fastapi_pagination import Page, paginate
 
-from app.api.deps import get_db
+from app.api.deps import get_db, authenticate
 from app.core.utils import limiter
 from app.core.config import settings
 from app.domain.portfolio.repositories.stock_repository import StockRepository
@@ -40,9 +40,28 @@ from app.domain.portfolio.schemas.stock_historical_schemas import (
 from app.domain.portfolio.schemas.global_schemas import (
     GlobalMarketPerformanceSchema,
     GlobalSearchResultsSchema,
+    GlobalAssetsToConvert,
+)
+from app.domain.portfolio.schemas.stock_portfolio_schemas import (
+    StockInPortfolioBaseSchema,
+)
+from app.domain.portfolio.schemas.crypto_portfolio_schemas import (
+    CryptoInPortfolioBaseSchema,
 )
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from app.domain.portfolio.repositories.crypto_portfolio_repository import (
+    CryptoPortfolioRepository,
+)
+from app.domain.portfolio.services.crypto_portfolio_service import (
+    CryptoPortfolioService,
+)
+from app.domain.portfolio.services.stock_portfolio_service import (
+    StockPortfolioService,
+)
+from app.domain.portfolio.repositories.stock_portfolio_repository import (
+    StockPortfolioRepository,
+)
 
 router = APIRouter(
     prefix="/assets",
@@ -136,6 +155,101 @@ def get_global_search(
     return {
         "stocks": stock_results,
         "cryptos": crypto_results,
+    }
+
+
+@router.get("/global-converter", status_code=status.HTTP_200_OK)
+@limiter.limit("5/second")
+def convert_global_asset_value(
+    request: Request,
+    convert_from: str = Query(
+        str, description="Asset to convert from, e.g. PLN, EUR, btc, eth, SAN.WA"
+    ),
+    convert_to: str = Query(
+        str, description="Asset to convert to, e.g. USD, EUR, btc, eth, SAN.WA"
+    ),
+    amount: float = Query(float, gt=0, description="Amount to convert"),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Convert value between different global assets (cryptos, stocks, fiat currencies).
+    """
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+
+    currency_repository = CurrencyPairRateRepository(db_session=db)
+    currency_service = CurrencyService(repository=currency_repository)
+
+    convert_from_obj = stock_service.get_stock_by_symbol(symbol=convert_from)
+
+    if convert_from_obj is None:
+        convert_from_obj = crypto_service.get_crypto_by_symbol(symbol=convert_from)
+    if convert_from_obj is None:
+        currencies = currency_service.get_all_currencies()
+        filtered = [c for c in currencies if c["symbol"] == convert_from]
+        convert_from_obj = filtered[0] if filtered else None
+    if convert_from_obj is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Nie znaleziono aktywa do konwersji '{convert_from}'.",
+        )
+
+    convert_to_obj = stock_service.get_stock_by_symbol(symbol=convert_to)
+    if convert_to_obj is None:
+        convert_to_obj = crypto_service.get_crypto_by_symbol(symbol=convert_to)
+    if convert_to_obj is None:
+        currencies = currency_service.get_all_currencies()
+        filtered = [c for c in currencies if c["symbol"] == convert_to]
+        convert_to_obj = filtered[0] if filtered else None
+    if convert_to_obj is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Nie znaleziono aktywa do konwersji '{convert_to}'.",
+        )
+    if isinstance(convert_from_obj, dict):
+        from_price = convert_from_obj.get("price", 1)
+    else:
+        from_price = convert_from_obj.price
+    if isinstance(convert_to_obj, dict):
+        to_price = convert_to_obj.get("price", 1)
+    else:
+        to_price = convert_to_obj.price
+    converted_amount = (amount * from_price) / to_price
+
+    return {
+        "converted_amount": converted_amount,
+    }
+
+
+@router.get("/global-assets-in-converter", status_code=status.HTTP_200_OK)
+def get_global_assets_to_convert(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> GlobalAssetsToConvert:
+    """
+    Get a list of all global assets available for conversion.
+    """
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+
+    currency_repository = CurrencyPairRateRepository(db_session=db)
+    currency_service = CurrencyService(repository=currency_repository)
+
+    # Get all available assets for conversion
+    stocks = stock_service.search_stocks(search=None)
+    cryptos = crypto_service.search_cryptos(search=None)
+    currencies = currency_service.get_all_currencies()
+
+    return {
+        "stocks": stocks,
+        "cryptos": cryptos,
+        "currencies": currencies,
     }
 
 
@@ -351,6 +465,33 @@ def get_stock_historical_data(
     return historical_data
 
 
+@router.get("/stocks/{symbol}/portfolios", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
+def get_portfolios_holding_stock(
+    symbol: str,
+    request: Request,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> List[StockInPortfolioBaseSchema]:
+    """
+    Return list of portfolios holding the specified stock.
+    """
+    stock_portfolio_repository = StockPortfolioRepository(db)
+    stock_portfolio_service = StockPortfolioService(stock_portfolio_repository, user_id)
+    stock_repository = StockRepository(db_session=db)
+    stock_service = StockService(repository=stock_repository)
+
+    stock = stock_service.get_stock_by_symbol(symbol=symbol)
+    if not stock:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Akcja z symbolem '{symbol}' nie została znaleziona.",
+        )
+    portfolios = stock_portfolio_service.get_portfolios_holding_stock(stock=stock)
+
+    return portfolios
+
+
 @router.get("/cryptos", status_code=status.HTTP_200_OK)
 @limiter.limit("1/second")
 def get_cryptos_data(
@@ -479,6 +620,35 @@ def get_crypto_historical_data(
         )
 
     return historical_data
+
+
+@router.get("/cryptos/{symbol}/portfolios", status_code=status.HTTP_200_OK)
+@limiter.limit("50/minutes")
+def get_portfolios_holding_crypto(
+    symbol: str,
+    request: Request,
+    user_id: Annotated[str, Depends(authenticate)],
+    db: Session = Depends(get_db),
+) -> List[CryptoInPortfolioBaseSchema]:
+    """
+    Return list of portfolios holding the specified crypto.
+    """
+    crypto_portfolio_repository = CryptoPortfolioRepository(db)
+    crypto_portfolio_service = CryptoPortfolioService(
+        crypto_portfolio_repository, user_id
+    )
+    crypto_repository = CryptoRepository(db_session=db)
+    crypto_service = CryptoService(repository=crypto_repository)
+
+    crypto = crypto_service.get_crypto_by_symbol(symbol=symbol)
+    if not crypto:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Krypto z symbolem '{symbol}' nie zostało znalezione.",
+        )
+    portfolios = crypto_portfolio_service.get_portfolios_holding_crypto(crypto=crypto)
+
+    return portfolios
 
 
 @router.get("/currencies/pair-rates", status_code=status.HTTP_200_OK)

@@ -62,6 +62,24 @@ class CryptoPortfolioService:
 
         return crypto_portfolio
 
+    def get_portfolios_holding_crypto(self, crypto: Crypto):
+        portfolios = self.get_all_portfolios()
+        portfolios_holding_crypto = []
+        for portfolio in portfolios:
+            in_portfolio = self.repository.get_watched_crypto_in_portfolio_by_id(
+                portfolio.id, crypto.id
+            )
+            portfolios_holding_crypto.append(
+                {
+                    "id": portfolio.id,
+                    "title": portfolio.title,
+                    "color": portfolio.color,
+                    "crypto_in_portfolio": in_portfolio is not None,
+                }
+            )
+
+        return portfolios_holding_crypto
+
     def add_watched_crypto_to_portfolio(self, portfolio_id: str, crypto: Crypto):
         crypto_portfolio = self.get_portfolio_by_id(
             portfolio_id, validate_permission_to_edit=True

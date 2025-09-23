@@ -13,6 +13,13 @@ class CryptoBaseSchema(CryptoSymbolSchema):
     price_change_percentage_24h: Optional[float] = None
 
 
+class CryptoInPortfolioBaseSchema(CryptoBaseSchema):
+    id: str
+    title: str
+    color: str
+    in_portfolio: Optional[bool] = True
+
+
 class CryptoPortfolioCreateTransaction(BaseModel):
     description: str
     transaction_type: str
