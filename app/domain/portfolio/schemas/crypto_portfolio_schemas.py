@@ -13,11 +13,11 @@ class CryptoBaseSchema(CryptoSymbolSchema):
     price_change_percentage_24h: Optional[float] = None
 
 
-class CryptoInPortfolioBaseSchema(CryptoBaseSchema):
-    id: str
+class CryptoInPortfolioBaseSchema(BaseModel):
+    id: UUID
     title: str
     color: str
-    in_portfolio: Optional[bool] = True
+    in_portfolio: bool
 
 
 class CryptoPortfolioCreateTransaction(BaseModel):

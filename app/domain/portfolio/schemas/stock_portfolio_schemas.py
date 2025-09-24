@@ -12,11 +12,11 @@ class StockBaseSchema(StockSymbolSchema):
     price_change_percentage_24h: Optional[float] = None
 
 
-class StockInPortfolioBaseSchema(StockBaseSchema):
-    id: str
+class StockInPortfolioBaseSchema(BaseModel):
+    id: UUID
     title: str
     color: str
-    in_portfolio: Optional[bool] = True
+    in_portfolio: bool
 
 
 class StockPortfolioCreateTransaction(BaseModel):

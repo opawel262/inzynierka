@@ -74,7 +74,7 @@ class StockPortfolioService:
                     "id": portfolio.id,
                     "title": portfolio.title,
                     "color": portfolio.color,
-                    "stock_in_portfolio": in_portfolio is not None,
+                    "in_portfolio": in_portfolio is not None,
                 }
             )
 
