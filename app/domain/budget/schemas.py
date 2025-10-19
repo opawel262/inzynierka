@@ -8,7 +8,6 @@ from app.domain.user.schemas import UserPublic
 class BudgetTransactionCategorySchema(BaseModel):
     id: int
     name: str
-    icon: str
 
 
 class BudgetTransactionCategoryDetailSchema(BudgetTransactionCategorySchema):

@@ -72,6 +72,5 @@ class Category(Base):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
-    icon = Column(String, nullable=True)
 
     transactions = relationship("BudgetTransaction", back_populates="category")

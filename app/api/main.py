@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.routes import user, auth, develop, budget, portfolio
+from app.api.routes import user, auth, develop, budget, portfolio, raport
 from app.api.routes.portfolio import portfolio_crypto, portfolio_stock, assets
 from app.core.config import settings
 
@@ -15,6 +15,7 @@ def include_api_routes():
     router.include_router(portfolio_crypto.router, prefix=settings.API_V1_STR)
     router.include_router(portfolio_stock.router, prefix=settings.API_V1_STR)
     router.include_router(assets.router, prefix=settings.API_V1_STR)
+    router.include_router(raport.router, prefix=settings.API_V1_STR)
 
 
 include_api_routes()

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Raport Portfela — {{ now_data }}</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --muted: #6b7280;
+        --text: #0f172a;
+        --card: #f8fafc;
+        --accent: #3c36ff;
+        --accent-soft: #7f7dee;
+        --accent-2: #4541fe;
+        --glass-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        --max-width: 780px;
+      }
+
+      body {
+        margin: 0 auto;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+        padding: 20px;
+        max-width: var(--max-width);
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        color: white;
+        font-weight: 700;
+        font-size: 20px;
+        box-shadow: var(--glass-shadow);
+      }
+      h1 {
+        font-size: 20px;
+        margin: 12px 0 4px;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: var(--card);
+        padding: 14px;
+        border-radius: 10px;
+        box-shadow: var(--glass-shadow);
+      }
+      .card h3 {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .card .value {
+        margin-top: 6px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .card .sub {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .panel {
+        background: var(--card);
+        padding: 14px;
+        border-radius: 10px;
+        box-shadow: var(--glass-shadow);
+        margin-bottom: 20px;
+      }
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      td,
+      th {
+        padding: 6px 4px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+      }
+
+      .chart-wrap {
+        width: 100%;
+        height: auto;
+        text-align: center;
+      }
+
+      .chart-wrap img {
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: var(--glass-shadow);
+      }
+
+      .empty {
+        color: var(--muted);
+        font-style: italic;
+        font-size: 12px;
+      }
+
+      .holdings-table td.icon {
+        width: 28px;
+        padding-right: 6px;
+      }
+      .holdings-table img {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        vertical-align: middle;
+      }
+
+      footer {
+        margin-top: 24px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">RPK</div>
+      <h1>Raport Portfeli Kryptowalut</h1>
+      <div class="meta">Z dnia: {{ now_data }}</div>
+    </header>
+
+    <!-- 🧾 Główne wartości -->
+    <section class="cards">
+      <div class="card">
+        <h3>Całkowity wkład</h3>
+        <div class="value">{{ total_investment }}</div>
+        <div class="sub">Suma zainwestowanych środków</div>
+      </div>
+      <div class="card">
+        <h3>Aktualna wartość</h3>
+        <div class="value">{{ total_value }}</div>
+        <div class="sub">Wartość rynkowa portfela</div>
+      </div>
+      <div class="card">
+        <h3>Całkowity zysk/strata</h3>
+        <div class="value">{{ total_profit_loss }}</div>
+        <div class="sub">{{ total_profit_loss_percentage }}</div>
+      </div>
+    </section>
+
+    <!-- 📈 Wykresy -->
+    <section class="panel">
+      <h2>Wartość portfela — ostatnie 7 dni</h2>
+      <div class="chart-wrap">
+        <img src="{{ chart_image_7d }}" alt="Wykres 7 dni" />
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Wartość portfela — ostatni miesiąc</h2>
+      <div class="chart-wrap">
+        <img src="{{ chart_image_1m }}" alt="Wykres 1 miesiąc" />
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Wartość portfela — ostatni rok</h2>
+      <div class="chart-wrap">
+        <img src="{{ chart_image_1y }}" alt="Wykres 1 rok" />
+      </div>
+    </section>
+
+    <!-- 📊 Statystyki globalne -->
+    <section class="panel">
+      <h2>Statystyki globalne</h2>
+      <table>
+        <tr>
+          <th>Pole</th>
+          <th>Wartość</th>
+        </tr>
+        <tr>
+          <td>Zysk/strata (24h)</td>
+          <td>{{ total_profit_loss_24h }}</td>
+        </tr>
+        <tr>
+          <td>Zmiana 24h (%)</td>
+          <td>{{ total_percentage_profit_loss_24h }}</td>
+        </tr>
+        <tr>
+          <td>Łączna zmiana (%)</td>
+          <td>{{ total_profit_loss_percentage }}</td>
+        </tr>
+        <tr>
+          <td>Łączny zysk/strata</td>
+          <td>{{ total_profit_loss }}</td>
+        </tr>
+        <tr>
+          <td>Liczba portfeli</td>
+          <td>{{ total_portfolios }}</td>
+        </tr>
+        <tr>
+          <td>Liczba transakcji</td>
+          <td>{{ total_transactions }}</td>
+        </tr>
+        <tr>
+          <td>Zyskowne transakcje</td>
+          <td>{{ positive_transactions }}</td>
+        </tr>
+        <tr>
+          <td>Stratne transakcje</td>
+          <td>{{ negative_transactions }}</td>
+        </tr>
+        <tr>
+          <td>Zyskowne kryptowaluty</td>
+          <td>{{ positive_watched_crypto }}</td>
+        </tr>
+        <tr>
+          <td>Stratne kryptowaluty</td>
+          <td>{{ negative_watched_crypto }}</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- 🪙 Alokacja -->
+    <section class="panel">
+      <h2>Alokacja portfela</h2>
+      <table class="holdings-table">
+        <tr>
+          <th>Krypto</th>
+          <th>Udział (%)</th>
+        </tr>
+        {% if holdings_percentage %} {% for name, percent in holdings_percentage
+        %}
+        <tr>
+          <td>{{ name }}</td>
+          <td>{{ "%.2f"|format(percent) }}%</td>
+        </tr>
+        {% endfor %} {% else %}
+        <tr>
+          <td colspan="2" class="empty">Brak danych o alokacji</td>
+        </tr>
+        {% endif %}
+      </table>
+    </section>
+
+    <footer>
+      Wygenerowano automatycznie — {{ now_data }} • Raport systemowy
+    </footer>
+  </body>
+</html>

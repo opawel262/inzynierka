@@ -117,7 +117,6 @@ def create_example_data(request: Request, db: Session = Depends(get_db)):
     for category in categories:
         category = Category(
             name=category.get("name"),
-            icon=category.get("icon"),
         )
         db.add(category)
 

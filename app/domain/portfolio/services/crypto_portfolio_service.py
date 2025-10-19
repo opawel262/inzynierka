@@ -337,6 +337,7 @@ class CryptoPortfolioService:
             "historical_value_7d": [],
             "historical_value_1m": [],
             "historical_value_1y": [],
+            "positive_profit_cryptos": [],
         }
         watched_cryptos = set()
         for portfolio in portfolios:
