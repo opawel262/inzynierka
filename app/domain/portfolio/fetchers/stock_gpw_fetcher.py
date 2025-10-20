@@ -130,10 +130,32 @@ class GPWStockFetcher:
             sector = info.get("sector")
             volume_24h = info.get("volume") or info.get("regularMarketVolume")
             market_cap = info.get("marketCap")
+            market_state = info.get("marketState")\
             market_state = info.get("marketState")
+
+            if market_state == "PREPRE":
+                market_state_pl = "Przed sesją (wczesna przedrynkowa)"
+            elif market_state == "PRE":
+                market_state_pl = "Przed sesją (przedrynkowa)"
+            elif market_state == "REGULAR":
+                market_state_pl = "Sesja regularna (główna)"
+            elif market_state == "POST":
+                market_state_pl = "Po sesji (popołudniowa, after hours)"
+            elif market_state == "POSTPOST":
+                market_state_pl = "Po sesji (późna, extended after hours)"
+            elif market_state == "CLOSED":
+                market_state_pl = "Rynek zamknięty"
+            elif market_state == "SUSPENDED":
+                market_state_pl = "Handel zawieszony"
+            elif market_state == "DELAYED":
+                market_state_pl = "Opóźnione dane"
+            else:
+                market_state_pl = f"Nieznany stan rynku ({market_state})"
+
+
             description = info.get("longBusinessSummary")
             debt_to_equity = info.get("debtToEquity")
-            trailing_annual_dividend_yield = info.get("trailingAnnualDividendYield")
+            trailing_annual_dividend_yield = info.get("trailingAnnualDividendYield") * 100
             return_on_equity = info.get("returnOnEquity")
             free_cashflow = info.get("freeCashflow")
             payout_ratio = info.get("payoutRatio")

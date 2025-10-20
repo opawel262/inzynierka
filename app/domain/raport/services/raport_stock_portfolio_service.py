@@ -53,17 +53,16 @@ class RaportStockPortfolioService:
             x="date",
             y="value",
             title=title,
-            template="plotly_dark",
+            template="plotly_white",
             labels={"date": "Data", "value": "Wartość (PLN)"},
         )
         fig.update_layout(xaxis_showgrid=False, yaxis_showgrid=False)
         fig.update_xaxes(nticks=10)
-        fig.update_traces(line_color="#4ade80")  # neon green
+        fig.update_traces(line_color="#3c37ff")  # neon green
         img_bytes = fig.to_image(format="png", scale=2)
         return base64.b64encode(img_bytes).decode()
 
     def generate_report_pdf(self):
-        portfolio_summary = self.get_portfolio_summary()
         portfolios = self.get_all_portfolios()
         positive_transactions = 0
         negative_transactions = 0
@@ -79,20 +78,22 @@ class RaportStockPortfolioService:
                 else:
                     negative_transactions += 1
             for stock in portfolio.watched_stocks:
-                symbol = stock.crypto.symbol
+                symbol = stock.stock.symbol
                 if symbol in watched_stocks:
                     existing = watched_stocks[symbol]
                     existing["profit_loss"] = existing.get(
                         "profit_loss", 0
                     ) + stock.get("profit_loss", 0)
                 else:
-                    watched_stocks[symbol] = stock.copy()
+                    watched_stocks[symbol] = {"profit_loss": stock.profit_loss}
 
         for stock in watched_stocks.values():
             if stock.get("profit_loss", 0) >= 0:
                 positive_watched_stock += 1
             else:
                 negative_watched_stock += 1
+
+        portfolio_summary = self.get_portfolio_summary()
         historical_value_7d = portfolio_summary.get("historical_value_7d", [])
         historical_value_1m = portfolio_summary.get("historical_value_1m", [])
         historical_value_1y = portfolio_summary.get("historical_value_1y", [])
