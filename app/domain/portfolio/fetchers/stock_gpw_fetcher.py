@@ -153,9 +153,10 @@ class GPWStockFetcher:
 
             description = info.get("longBusinessSummary")
             debt_to_equity = info.get("debtToEquity")
-            trailing_annual_dividend_yield = (
-                info.get("trailingAnnualDividendYield") * 100
-            )
+            trailing_annual_dividend_yield = info.get("trailingAnnualDividendYield")
+            if trailing_annual_dividend_yield is None:
+                trailing_annual_dividend_yield = 0
+            trailing_annual_dividend_yield = trailing_annual_dividend_yield * 100
             return_on_equity = info.get("returnOnEquity")
             free_cashflow = info.get("freeCashflow")
             payout_ratio = info.get("payoutRatio")

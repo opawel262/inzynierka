@@ -72,7 +72,10 @@ class RaportCryptoPortfolioService:
         transactions = []
         for portfolio in portfolios:
             for tx in portfolio.crypto_transactions:
+                if tx.transaction_type == "sell":
+                    continue
                 transactions.append(tx)
+
                 if tx.profit_loss >= 0:
                     positive_transactions += 1
                 else:
@@ -81,9 +84,9 @@ class RaportCryptoPortfolioService:
                 symbol = crypto.crypto.symbol
                 if symbol in watched_cryptos:
                     existing = watched_cryptos[symbol]
-                    existing["profit_loss"] = existing.get(
-                        "profit_loss", 0
-                    ) + crypto.get("profit_loss", 0)
+                    existing["profit_loss"] = (
+                        existing.get("profit_loss", 0) + crypto.profit_loss
+                    )
                 else:
                     watched_cryptos[symbol] = {"profit_loss": crypto.profit_loss}
 
