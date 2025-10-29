@@ -161,7 +161,7 @@
       </div>
       <div class="card">
         <h3>Aktualna wartość</h3>
-        <div class="value">{{ total_value }}</div>
+        <div class="value">{{ "%.2f"|format(current_value) }}</div>
         <div class="sub">Wartość rynkowa portfela</div>
       </div>
       <div class="card">
@@ -201,21 +201,26 @@
           <th>Pole</th>
           <th>Wartość</th>
         </tr>
+        <tr></tr>
         <tr>
-          <td>Zysk/strata 24h</td>
-          <td>{{ total_profit_loss_24h }}</td>
+          <td>Całkowity wkład</td>
+          <td>{{ "%.2f"|format(total_investment) }}</td>
         </tr>
         <tr>
-          <td>Zysk/strata 24h (%)</td>
-          <td>{{ total_percentage_profit_loss_24h }}</td>
+          <td>Aktualna wartość</td>
+          <td>{{ "%.2f"|format(current_value) }}</td>
+        </tr>
+        <tr>
+          <td>Zysk/strata 24h</td>
+          <td>{{ "%.2f"|format(total_profit_loss_24h) }}</td>
         </tr>
         <tr>
           <td>Zysk/strata (%)</td>
-          <td>{{ total_profit_loss_percentage }}</td>
+          <td>{{ "%.2f"|format(total_profit_loss_percentage) }}</td>
         </tr>
         <tr>
           <td>Zysk/strata</td>
-          <td>{{ total_profit_loss }}</td>
+          <td>{{ "%.2f"|format(total_profit_loss) }}</td>
         </tr>
         <tr>
           <td>Liczba portfeli</td>

@@ -15,6 +15,8 @@ from uuid import uuid4
 from datetime import datetime
 from app.domain.model_base import Base
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+import pytz
 
 
 ### BASE MODELS TO EXTEND ###
@@ -29,11 +31,14 @@ class BasePortfolio(Base):
     owner_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+    )
     updated_at = Column(
-        DateTime,
-        server_default=func.timezone("UTC", func.now()),
-        onupdate=func.timezone("UTC", func.now()),
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+        onupdate=func.timezone("Europe/Warsaw", func.now()),
     )
     is_public = Column(Boolean, default=False, nullable=False)
 
@@ -46,9 +51,9 @@ class BaseAsset(Base):
     price = Column(Float, nullable=False)
     currency = Column(String, nullable=False)
     updated_at = Column(
-        DateTime,
-        server_default=func.timezone("UTC", func.now()),
-        onupdate=func.timezone("UTC", func.now()),
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+        onupdate=func.timezone("Europe/Warsaw", func.now()),
     )
     market_cap = Column(BigInteger, nullable=True)
     market_cap_rank = Column(Integer, nullable=True)
@@ -69,7 +74,7 @@ class BaseHistoricalPrice(Base):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True, index=True)
-    date = Column(DateTime, nullable=False)
+    date = Column(DateTime(timezone=True), nullable=False)
     open_price = Column(Float, nullable=True)
     close_price = Column(Float, nullable=True)
     high_price = Column(Float, nullable=True)
@@ -89,13 +94,19 @@ class BaseTransaction(Base):
     transaction_type = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     price_per_unit = Column(Float, nullable=False)
-    transaction_date = Column(DateTime, default=datetime.utcnow)
+    transaction_date = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+    )
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+    )
     updated_at = Column(
-        DateTime,
-        server_default=func.timezone("UTC", func.now()),
-        onupdate=func.timezone("UTC", func.now()),
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+        onupdate=func.timezone("Europe/Warsaw", func.now()),
     )
 
 
@@ -205,7 +216,7 @@ class StockPortfolio(BasePortfolio):
     @property
     def historical_value_7d(self):
         interval_hours = 12
-        now = datetime.utcnow()
+        now = datetime.now(pytz.timezone("Europe/Warsaw"))
         start_time = now - timedelta(days=7)
         time_points = [
             start_time + timedelta(hours=i * interval_hours)
@@ -243,7 +254,7 @@ class StockPortfolio(BasePortfolio):
     @property
     def historical_value_1m(self):
         interval_hours = 24
-        now = datetime.utcnow()
+        now = datetime.now(pytz.timezone("Europe/Warsaw"))
         start_time = now - timedelta(days=30)
         time_points = [
             start_time + timedelta(hours=i * interval_hours)
@@ -281,7 +292,7 @@ class StockPortfolio(BasePortfolio):
     @property
     def historical_value_1y(self):
         interval_days = 14
-        now = datetime.utcnow()
+        now = datetime.now(pytz.timezone("Europe/Warsaw"))
         start_time = now - timedelta(days=365)
         time_points = [
             start_time + timedelta(days=i * interval_days)
@@ -430,7 +441,7 @@ class CryptoPortfolio(BasePortfolio):
     @property
     def historical_value_7d(self):
         interval_hours = 12
-        now = datetime.utcnow()
+        now = datetime.now(pytz.timezone("Europe/Warsaw"))
         start_time = now - timedelta(days=7)
         time_points = [
             start_time + timedelta(hours=i * interval_hours)
@@ -468,7 +479,7 @@ class CryptoPortfolio(BasePortfolio):
     @property
     def historical_value_1m(self):
         interval_hours = 24
-        now = datetime.utcnow()
+        now = datetime.now(pytz.timezone("Europe/Warsaw"))
         start_time = now - timedelta(days=30)
         time_points = [
             start_time + timedelta(hours=i * interval_hours)
@@ -506,7 +517,7 @@ class CryptoPortfolio(BasePortfolio):
     @property
     def historical_value_1y(self):
         interval_days = 14
-        now = datetime.utcnow()
+        now = datetime.now(pytz.timezone("Europe/Warsaw"))
         start_time = now - timedelta(days=365)
         time_points = [
             start_time + timedelta(days=i * interval_days)
@@ -686,9 +697,9 @@ class CurrencyPairRate(Base):
     base_currency = Column(String(3), index=True)
     quote_currency = Column(String(3), index=True)
     updated_at = Column(
-        DateTime,
-        server_default=func.timezone("UTC", func.now()),
-        onupdate=func.timezone("UTC", func.now()),
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+        onupdate=func.timezone("Europe/Warsaw", func.now()),
     )
     rate = Column(Float, nullable=False)
 

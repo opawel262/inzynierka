@@ -76,7 +76,7 @@ class RaportStockPortfolioService:
                     continue
                 transactions.append(tx)
 
-                if tx.profit_loss >= 0:
+                if tx.profit_loss > 0:
                     positive_transactions += 1
                 else:
                     negative_transactions += 1
@@ -91,7 +91,7 @@ class RaportStockPortfolioService:
                     watched_stocks[symbol] = {"profit_loss": stock.profit_loss}
 
         for stock in watched_stocks.values():
-            if stock.get("profit_loss", 0) >= 0:
+            if stock.get("profit_loss", 0) > 0:
                 positive_watched_stock += 1
             else:
                 negative_watched_stock += 1
@@ -124,14 +124,19 @@ class RaportStockPortfolioService:
         )
         env = Environment(loader=FileSystemLoader("."))
         template = env.get_template("app/templates/raport/raport_stock_portfolio.html")
+        now = datetime.now()
+        month_en = now.strftime("%B")
+        month_pl = self.months_en_pl.get(month_en, month_en)
+        now_data = now.strftime(f"%d {month_pl} %Y, %H:%M")
+
         html_content = template.render(
-            now_data=datetime.now().strftime("%d %B %Y, %H:%M"),
+            now_data=now_data,
             portfolio_value="15,200 PLN",
             chart_image_7d=f"data:image/png;base64,{img_base64_7d}",
             chart_image_1m=f"data:image/png;base64,{img_base64_1m}",
             chart_image_1y=f"data:image/png;base64,{img_base64_1y}",
             total_investment=portfolio_summary.get("total_investment", "0 PLN"),
-            total_value=portfolio_summary.get("total_value", "0 PLN"),
+            current_value=portfolio_summary.get("current_value", "0 PLN"),
             total_percentage_profit_loss_24h=portfolio_summary.get(
                 "total_percentage_profit_loss_24h", "0%"
             ),

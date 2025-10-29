@@ -156,18 +156,20 @@
     <section class="cards">
       <div class="card">
         <h3>Całkowity wkład</h3>
-        <div class="value">{{ total_investment }}</div>
+        <div class="value">{{ "%.2f"|format(total_investment) }}</div>
         <div class="sub">Suma zainwestowanych środków</div>
       </div>
       <div class="card">
         <h3>Aktualna wartość</h3>
-        <div class="value">{{ total_value }}</div>
+        <div class="value">{{ "%.2f"|format(current_value) }}</div>
         <div class="sub">Wartość rynkowa portfela</div>
       </div>
       <div class="card">
         <h3>Całkowity zysk/strata</h3>
-        <div class="value">{{ total_profit_loss }}</div>
-        <div class="sub">{{ total_profit_loss_percentage }}</div>
+        <div class="value">{{ "%.2f"|format(total_profit_loss) }}</div>
+        <div class="sub">
+          {{ "%.2f"|format(total_profit_loss_percentage) }} %
+        </div>
       </div>
     </section>
 
@@ -202,20 +204,29 @@
           <th>Wartość</th>
         </tr>
         <tr>
+          <td>Całkowity wkład</td>
+          <td>{{ "%.2f"|format(total_investment) }}</td>
+        </tr>
+        <tr>
+          <td>Aktualna wartość</td>
+          <td>{{ "%.2f"|format(current_value) }}</td>
+        </tr>
+        <tr>
           <td>Zysk/strata (24h)</td>
-          <td>{{ total_profit_loss_24h }}</td>
+          <td>{{ "%.2f"|format(total_profit_loss_24h) }}</td>
         </tr>
         <tr>
           <td>Zmiana 24h (%)</td>
-          <td>{{ total_percentage_profit_loss_24h }}</td>
+          <td>{{ "%.2f"|format(total_percentage_profit_loss_24h) }}</td>
         </tr>
         <tr>
           <td>Łączna zmiana (%)</td>
-          <td>{{ total_profit_loss_percentage }}</td>
+          <td>{{ "%.2f"|format(total_profit_loss_percentage) }}</td>
         </tr>
+
         <tr>
           <td>Łączny zysk/strata</td>
-          <td>{{ total_profit_loss }}</td>
+          <td>{{ "%.2f"|format(total_profit_loss) }}</td>
         </tr>
         <tr>
           <td>Liczba portfeli</td>
@@ -255,7 +266,7 @@
         {% if holdings_percentage %} {% for name, percent in holdings_percentage
         %}
         <tr>
-          <td>{{ name }}</td>
+          <td>{% if name == "Other" %}Inne{% else %}{{ name }}{% endif %}</td>
           <td>{{ "%.2f"|format(percent) }}%</td>
         </tr>
         {% endfor %} {% else %}

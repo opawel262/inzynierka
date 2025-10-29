@@ -15,11 +15,14 @@ class Budget(Base):
     title = Column(String(64), nullable=False)
     description = Column(String(255), nullable=True)
     color = Column(String(20), nullable=False)
-    created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+    )
     updated_at = Column(
-        DateTime,
-        server_default=func.timezone("UTC", func.now()),
-        onupdate=func.timezone("UTC", func.now()),
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+        onupdate=func.timezone("Europe/Warsaw", func.now()),
     )
     is_public = Column(Boolean, default=False, nullable=False)
     owner_id = Column(
@@ -56,13 +59,19 @@ class BudgetTransaction(Base):
         ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
     )
-    created_at = Column(DateTime, server_default=func.timezone("UTC", func.now()))
-    updated_at = Column(
-        DateTime,
-        server_default=func.timezone("UTC", func.now()),
-        onupdate=func.timezone("UTC", func.now()),
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
     )
-    transaction_date = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+        onupdate=func.timezone("Europe/Warsaw", func.now()),
+    )
+    transaction_date = Column(
+        DateTime(timezone=True),
+        server_default=func.timezone("Europe/Warsaw", func.now()),
+    )
 
     budget = relationship("Budget", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")

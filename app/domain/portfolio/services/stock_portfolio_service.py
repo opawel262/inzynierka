@@ -259,12 +259,16 @@ class StockPortfolioService:
             total_bought = sum(
                 t.amount
                 for t in transactions
-                if t.stock_id == stock_id and t.transaction_type == "buy"
+                if t.stock_id == stock_id
+                and t.transaction_type == "buy"
+                and str(transaction_id) != str(t.id)
             )
             total_sold = sum(
                 t.amount
                 for t in transactions
-                if t.stock_id == stock_id and t.transaction_type == "sell"
+                if t.stock_id == stock_id
+                and t.transaction_type == "sell"
+                and str(transaction_id) != str(t.id)
             )
             current_amount = total_bought - total_sold
 
@@ -458,6 +462,9 @@ class StockPortfolioService:
                     portfolio_summary["top_gainer_24h"]["holdings"] += round(
                         c.holdings, 8
                     )
+                    portfolio_summary["top_gainer_24h"]["profit_loss"] += round(
+                        c.profit_loss, 2
+                    )
 
             # Normalize avg_buy_price for top_gainer_24h
             holdings = portfolio_summary["top_gainer_24h"]["holdings"]
@@ -473,13 +480,7 @@ class StockPortfolioService:
                 portfolio_summary["top_gainer_24h"]["avg_buy_price"] = round(
                     avg_buy_price_sum / holdings, 2
                 )
-            else:
-                portfolio_summary["top_gainer_24h"]["avg_buy_price"] = 0
-            portfolio_summary["top_gainer_24h"]["profit_loss"] = round(
-                portfolio_summary["top_gainer_24h"]["current_value"]
-                - portfolio_summary["top_gainer_24h"]["total_invested"],
-                2,
-            )
+
             if (
                 portfolio_summary["top_gainer_24h"]["total_invested"] > 0
                 and portfolio_summary["top_gainer_24h"]["current_value"] > 0
